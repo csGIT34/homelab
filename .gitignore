@@ -19,6 +19,7 @@ packer_cache/
 
 # Ansible
 *.retry
+ansible/kubeconfig
 
 # Cloud-init secrets
 cloud-init/*-secrets.yml

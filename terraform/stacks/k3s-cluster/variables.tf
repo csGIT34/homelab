@@ -9,9 +9,15 @@ variable "proxmox_api_token" {
   sensitive   = true
 }
 
-variable "clone_template_id" {
+variable "server_template_id" {
   type        = number
-  description = "VM ID of the Ubuntu template to clone"
+  description = "VM ID of the template to clone for server nodes"
+  default     = 9001
+}
+
+variable "agent_template_id" {
+  type        = number
+  description = "VM ID of the template to clone for agent nodes"
   default     = 9000
 }
 
@@ -103,6 +109,11 @@ variable "cloud_init_file_id" {
   type        = string
   description = "Proxmox snippet ID for k8s cloud-init"
   default     = null
+}
+
+variable "ssh_public_keys" {
+  type        = list(string)
+  description = "SSH public keys for VM access"
 }
 
 variable "storage_pool" {

@@ -95,6 +95,17 @@ variable "cloud_init_file_id" {
   default     = null
 }
 
+variable "ssh_username" {
+  type        = string
+  description = "Default user account for SSH access"
+  default     = "ubuntu"
+}
+
+variable "ssh_public_keys" {
+  type        = list(string)
+  description = "SSH public keys for the default user"
+}
+
 variable "on_boot" {
   type        = bool
   description = "Start VM on host boot"

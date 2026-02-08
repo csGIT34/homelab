@@ -61,6 +61,11 @@ resource "proxmox_virtual_environment_vm" "vm" {
       domain  = var.dns_domain
     }
 
+    user_account {
+      username = var.ssh_username
+      keys     = var.ssh_public_keys
+    }
+
     user_data_file_id = var.cloud_init_file_id
   }
 

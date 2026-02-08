@@ -15,6 +15,7 @@ module "postgres" {
   ip_address = var.ip_address
   gateway    = var.gateway
 
+  ssh_public_keys    = var.ssh_public_keys
   cloud_init_file_id = var.cloud_init_file_id
 
   tags = ["terraform", "database", "postgres"]

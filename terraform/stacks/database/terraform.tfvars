@@ -12,3 +12,5 @@ ip_address = "10.0.30.10/24"
 gateway    = "10.0.30.1"
 
 storage_pool = "local-ssd"
+
+ssh_public_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDbnmCZMMU6BMdMdSxpVyaG13sD0QSd+63VUECrV/Kt6 zerocool@cachyos"]

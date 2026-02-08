@@ -16,6 +16,7 @@ module "sandbox_vm" {
   ip_address = "${cidrhost("10.0.40.0/24", 10 + count.index)}/24"
   gateway    = var.gateway
 
+  ssh_public_keys    = var.ssh_public_keys
   cloud_init_file_id = var.cloud_init_file_id
   on_boot            = false
 

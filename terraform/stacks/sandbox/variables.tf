@@ -69,6 +69,11 @@ variable "cloud_init_file_id" {
   default     = null
 }
 
+variable "ssh_public_keys" {
+  type        = list(string)
+  description = "SSH public keys for VM access"
+}
+
 variable "storage_pool" {
   type        = string
   description = "Storage pool for VM disks"
