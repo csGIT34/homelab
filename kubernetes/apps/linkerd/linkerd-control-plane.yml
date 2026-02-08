@@ -1,0 +1,41 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: linkerd-control-plane
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: infrastructure
+  source:
+    repoURL: https://helm.linkerd.io/edge
+    chart: linkerd-control-plane
+    targetRevision: "*"
+    helm:
+      valuesObject:
+        identityTrustAnchorsPEM: |
+          # PASTE YOUR CA CERT PEM HERE
+          # Run: scripts/generate-linkerd-certs.sh
+          # Then paste contents of ansible/roles/argocd/files/ca.crt
+        identity:
+          issuer:
+            scheme: kubernetes.io/tls
+        resources:
+          cpu:
+            limit: 500m
+            request: 100m
+          memory:
+            limit: 256Mi
+            request: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: linkerd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

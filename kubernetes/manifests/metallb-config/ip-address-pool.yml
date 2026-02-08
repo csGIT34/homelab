@@ -1,0 +1,9 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: k8s-vlan-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.0.20.50-10.0.20.99

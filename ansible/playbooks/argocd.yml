@@ -1,0 +1,6 @@
+---
+- name: Deploy ArgoCD and bootstrap GitOps
+  hosts: k3s_servers[0]
+  gather_facts: false
+  roles:
+    - argocd

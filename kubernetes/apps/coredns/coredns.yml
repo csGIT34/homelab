@@ -1,0 +1,73 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coredns-external
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: infrastructure
+  source:
+    repoURL: https://coredns.github.io/helm
+    chart: coredns
+    targetRevision: "1.*"
+    helm:
+      valuesObject:
+        fullnameOverride: coredns-external
+        replicaCount: 2
+        serviceType: LoadBalancer
+        service:
+          loadBalancerIP: "10.0.20.53"
+          annotations:
+            metallb.universe.tf/address-pool: k8s-vlan-pool
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        servers:
+          - zones:
+              - zone: .
+                port: 53
+            plugins:
+              - name: errors
+              - name: health
+                configBlock: |-
+                  lameduck 5s
+              - name: ready
+              - name: file
+                parameters: /etc/coredns/homelab.local.db homelab.local
+              - name: forward
+                parameters: . 1.1.1.1 8.8.8.8
+              - name: cache
+                parameters: 30
+              - name: loop
+              - name: reload
+              - name: loadbalance
+        zoneFiles:
+          - filename: homelab.local.db
+            domain: homelab.local
+            contents: |
+              homelab.local.    IN  SOA  ns.homelab.local. admin.homelab.local. 2024010101 3600 600 604800 600
+              homelab.local.    IN  NS   ns.homelab.local.
+              ns                IN  A    10.0.20.53
+              k3s-server        IN  A    10.0.20.10
+              k3s-agent-01      IN  A    10.0.20.21
+              k3s-agent-02      IN  A    10.0.20.22
+              k3s-agent-03      IN  A    10.0.20.23
+              postgres          IN  A    10.0.30.10
+              argocd            IN  A    10.0.20.10
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: coredns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

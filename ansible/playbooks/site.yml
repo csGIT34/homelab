@@ -9,3 +9,6 @@
 
 - name: Configure PostgreSQL
   ansible.builtin.import_playbook: postgres.yml
+
+- name: Deploy ArgoCD
+  ansible.builtin.import_playbook: argocd.yml

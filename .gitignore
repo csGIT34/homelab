@@ -40,6 +40,13 @@ Thumbs.db
 *.key
 id_rsa*
 
+# Ansible vault
+.vault_pass
+*.vault
+
+# Linkerd private keys (vault-encrypted versions are OK)
+ansible/roles/argocd/files/*.key
+
 # Environment
 .env
 .env.*
