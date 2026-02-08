@@ -1,0 +1,11 @@
+---
+# Master playbook — runs all roles in order
+
+- name: Configure k3s server
+  ansible.builtin.import_playbook: k3s-server.yml
+
+- name: Configure k3s agents
+  ansible.builtin.import_playbook: k3s-agent.yml
+
+- name: Configure PostgreSQL
+  ansible.builtin.import_playbook: postgres.yml

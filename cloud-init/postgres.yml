@@ -1,0 +1,39 @@
+#cloud-config
+# PostgreSQL node prerequisites
+
+package_update: true
+package_upgrade: true
+packages:
+  - qemu-guest-agent
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - sudo
+  - ca-certificates
+  - gnupg
+  - lsb-release
+
+users:
+  - name: deploy
+    groups: sudo
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 CHANGEME_YOUR_PUBLIC_KEY deploy@homelab
+
+write_files:
+  - path: /etc/sysctl.d/postgres.conf
+    content: |
+      vm.swappiness = 1
+      vm.overcommit_memory = 2
+      vm.overcommit_ratio = 90
+
+runcmd:
+  - systemctl enable --now qemu-guest-agent
+  - sysctl --system
+
+power_state:
+  mode: reboot
+  condition: true

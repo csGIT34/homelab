@@ -1,0 +1,38 @@
+#cloud-config
+# Base cloud-init — applied to all VMs
+
+timezone: America/Chicago
+
+package_update: true
+package_upgrade: true
+packages:
+  - qemu-guest-agent
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - sudo
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - unzip
+  - jq
+
+users:
+  - name: deploy
+    groups: sudo
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 CHANGEME_YOUR_PUBLIC_KEY deploy@homelab
+
+ntp:
+  enabled: true
+
+runcmd:
+  - systemctl enable --now qemu-guest-agent
+
+power_state:
+  mode: reboot
+  condition: true

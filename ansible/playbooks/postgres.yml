@@ -1,0 +1,6 @@
+---
+- name: Configure PostgreSQL server
+  hosts: postgres
+  roles:
+    - common
+    - postgres

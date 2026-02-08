@@ -1,0 +1,9 @@
+# k3s server configuration — Managed by Ansible
+write-kubeconfig-mode: "0644"
+tls-san:
+  - {{ ansible_host }}
+  - {{ inventory_hostname }}
+disable:
+  - traefik
+flannel-iface: eth0
+node-ip: {{ ansible_host }}

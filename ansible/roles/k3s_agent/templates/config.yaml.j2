@@ -1,0 +1,5 @@
+# k3s agent configuration — Managed by Ansible
+server: https://{{ k3s_server_ip }}:6443
+token: {{ k3s_token }}
+flannel-iface: eth0
+node-ip: {{ ansible_host }}
