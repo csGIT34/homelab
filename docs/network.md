@@ -123,14 +123,58 @@ DHCP range: 10.0.40.100–10.0.40.200 (on-demand VMs)
 
 ## Proxmox Network Config
 
-All 3 nodes use the same bridge config (only the IP differs):
+All nodes use a VLAN-aware bridge (`vmbr0`). pve-identity and pve-r720 use LACP bonding for redundancy and throughput.
+
+### pve-identity (2x 1Gbps LACP — switch ports 2+3)
+
+```
+auto bond0
+iface bond0 inet manual
+    bond-slaves nic0 nic1
+    bond-miimon 100
+    bond-mode 802.3ad
+    bond-xmit-hash-policy layer3+4
+
+auto vmbr0
+iface vmbr0 inet static
+    address 10.0.10.11/24
+    gateway 10.0.10.1
+    bridge-ports bond0
+    bridge-stp off
+    bridge-fd 0
+    bridge-vlan-aware yes
+    bridge-vids 10 20 30 40
+```
+
+### pve-r720 (4x 1Gbps LACP — switch ports 5+6+7+8)
+
+```
+auto bond0
+iface bond0 inet manual
+    bond-slaves nic0 nic1 nic2 nic3
+    bond-miimon 100
+    bond-mode 802.3ad
+    bond-xmit-hash-policy layer3+4
+
+auto vmbr0
+iface vmbr0 inet static
+    address 10.0.10.12/24
+    gateway 10.0.10.1
+    bridge-ports bond0
+    bridge-stp off
+    bridge-fd 0
+    bridge-vlan-aware yes
+    bridge-vids 10 20 30 40
+```
+
+### pve-desktop (single NIC — switch port 10)
 
 ```
 auto vmbr0
 iface vmbr0 inet static
-    address 10.0.10.X/24       # .11 (identity), .12 (r720), .13 (desktop)
+    address 10.0.10.13/24
     gateway 10.0.10.1
-    bridge-ports eno1           # Adjust interface name per node
+    bridge-ports nic0
     bridge-stp off
     bridge-fd 0
     bridge-vlan-aware yes
@@ -138,6 +182,8 @@ iface vmbr0 inet static
 ```
 
 VMs are tagged to VLANs via Terraform's `vlan_id` parameter on the network device. No per-VLAN bridge needed.
+
+Switch LAG config: Unifi US-24 ports set to "Aggregating" operation for each bond group.
 
 ## DNS
 

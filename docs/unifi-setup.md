@@ -178,13 +178,13 @@ For **end devices**: Native VLAN = their network, Tagged VLAN Management = `Bloc
 | Port | Native VLAN / Network | Tagged VLAN Management | Device |
 |------|----------------------|----------------------|--------|
 | 1 | `Management` | `Allow All` | USG 4 Pro LAN1 (uplink) — **do not change native VLAN** |
-| 2 | `Management` | `Allow All` | pve-identity — LAN 1 |
-| 3 | `Management` | `Allow All` | pve-identity — LAN 2 |
+| 2 | `Management` | `Allow All` | pve-identity — LAN 1 (LAG) |
+| 3 | `Management` | `Allow All` | pve-identity — LAN 2 (LAG) |
 | 4 | `Management` | `Block All` | pve-identity — IPMI (10.0.10.14) |
-| 5 | `Management` | `Allow All` | pve-r720 — LAN 1 |
-| 6 | `Management` | `Allow All` | pve-r720 — LAN 2 |
-| 7 | `Management` | `Allow All` | pve-r720 — LAN 3 |
-| 8 | `Management` | `Allow All` | pve-r720 — LAN 4 |
+| 5 | `Management` | `Allow All` | pve-r720 — LAN 1 (LAG) |
+| 6 | `Management` | `Allow All` | pve-r720 — LAN 2 (LAG) |
+| 7 | `Management` | `Allow All` | pve-r720 — LAN 3 (LAG) |
+| 8 | `Management` | `Allow All` | pve-r720 — LAN 4 (LAG) |
 | 9 | `Management` | `Block All` | pve-r720 — iDRAC (10.0.10.15) |
 | 10 | `Management` | `Allow All` | pve-desktop — LAN |
 | 11 | `Management` | `Block All` | neuromancer (workstation) |
@@ -200,8 +200,8 @@ For **end devices**: Native VLAN = their network, Tagged VLAN Management = `Bloc
 
 **Notes:**
 - IPMI (port 4) and iDRAC (port 9) use the `Management` profile for out-of-band access on VLAN 10
-- pve-identity has 2 LAN ports — can bond for redundancy or use 1 active / 1 standby
-- pve-r720 has 4 LAN ports — can bond for throughput or assign individually
+- pve-identity: Ports 2+3 configured as LAG (LACP 802.3ad) — Operation: Aggregating
+- pve-r720: Ports 5+6+7+8 configured as LAG (LACP 802.3ad) — Operation: Aggregating
 - pve-desktop uses 1 LAN port (second port available as spare)
 
 ## Step 4: Configure Firewall Rules
