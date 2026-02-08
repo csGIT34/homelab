@@ -15,15 +15,20 @@ if [ -f "${CERT_DIR}/ca.crt" ]; then
   exit 1
 fi
 
-# Check for step CLI
-if ! command -v step &> /dev/null; then
+# Check for step CLI (binary may be named "step" or "step-cli")
+STEP_CMD=""
+if command -v step &> /dev/null; then
+  STEP_CMD="step"
+elif command -v step-cli &> /dev/null; then
+  STEP_CMD="step-cli"
+else
   echo "Error: 'step' CLI not found."
   echo "Install it: https://smallstep.com/docs/step-cli/installation"
   exit 1
 fi
 
 echo "Generating Linkerd trust anchor certificate (10 year validity)..."
-step certificate create \
+${STEP_CMD} certificate create \
   root.linkerd.cluster.local \
   "${CERT_DIR}/ca.crt" "${CERT_DIR}/ca.key" \
   --profile root-ca \
@@ -31,7 +36,7 @@ step certificate create \
   --not-after 87600h
 
 echo "Generating Linkerd issuer certificate (1 year validity)..."
-step certificate create \
+${STEP_CMD} certificate create \
   identity.linkerd.cluster.local \
   "${CERT_DIR}/issuer.crt" "${CERT_DIR}/issuer.key" \
   --profile intermediate-ca \

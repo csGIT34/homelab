@@ -9,7 +9,7 @@ metadata:
 spec:
   description: Application workloads
   sourceRepos:
-    - https://github.com/zerocool/homelab.git
+    - https://github.com/csGIT34/homelab.git
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc

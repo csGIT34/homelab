@@ -10,7 +10,7 @@ linkerd_namespace: linkerd
 linkerd_viz_namespace: linkerd-viz
 
 # Git repo for ArgoCD
-argocd_repo_url: https://github.com/zerocool/homelab.git
+argocd_repo_url: https://github.com/csGIT34/homelab.git
 argocd_repo_branch: main
 
 # Kubeconfig

@@ -80,15 +80,14 @@
 
 - name: Read Linkerd trust anchor cert
   ansible.builtin.slurp:
-    src: "{{ linkerd_trust_anchor_cert_path }}"
+    src: "{{ playbook_dir }}/../{{ linkerd_trust_anchor_cert_path }}"
   register: linkerd_ca_crt
   delegate_to: localhost
   become: false
 
 - name: Read Linkerd trust anchor key
-  ansible.builtin.slurp:
-    src: "{{ linkerd_trust_anchor_key_path }}"
-  register: linkerd_ca_key
+  ansible.builtin.set_fact:
+    linkerd_ca_key_content: "{{ lookup('file', playbook_dir + '/../' + linkerd_trust_anchor_key_path) }}"
   delegate_to: localhost
   become: false
 
