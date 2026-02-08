@@ -37,7 +37,7 @@ variable "template_name" {
 variable "iso_file" {
   type        = string
   description = "Path to Ubuntu ISO on Proxmox storage"
-  default     = "local:iso/ubuntu-24.04-live-server-amd64.iso"
+  default     = "local-hdd:iso/ubuntu-24.04.3-live-server-amd64.iso"
 }
 
 variable "storage_pool" {

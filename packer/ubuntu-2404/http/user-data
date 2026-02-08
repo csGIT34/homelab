@@ -7,7 +7,7 @@ autoinstall:
   identity:
     hostname: ubuntu-template
     username: ubuntu
-    password: "$6$rounds=4096$randomsalt$hashedpassword"
+    password: "$6$ZHRHwC3Ph2UGIviN$n9Kg3r.08VjJnWEhKKH/JL3FYihEjWzcZmCjKsax9HOGlv7QmQe2IhnT0EvpFFMNocAt2bkt4IZaXLmaq9aDT/"
   ssh:
     install-server: true
     allow-pw: true

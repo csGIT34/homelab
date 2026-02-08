@@ -18,8 +18,18 @@ source "proxmox-iso" "ubuntu-2404" {
   vm_name              = var.template_name
   template_description = "Ubuntu 24.04 LTS template - built with Packer"
 
-  iso_file    = var.iso_file
-  unmount_iso = true
+  boot_iso {
+    iso_file         = var.iso_file
+    unmount          = true
+    iso_storage_pool = "local-hdd"
+  }
+
+  additional_iso_files {
+    cd_files         = ["./http/user-data", "./http/meta-data"]
+    cd_label         = "cidata"
+    iso_storage_pool = "local-hdd"
+    unmount          = true
+  }
 
   qemu_agent = true
   os         = "l26"
@@ -35,7 +45,7 @@ source "proxmox-iso" "ubuntu-2404" {
     disk_size    = "30G"
     storage_pool = var.storage_pool
     type         = "scsi"
-    iothread     = true
+    io_thread    = true
     discard      = true
   }
 
@@ -47,17 +57,19 @@ source "proxmox-iso" "ubuntu-2404" {
   cloud_init              = true
   cloud_init_storage_pool = var.storage_pool
 
-  http_directory = "http"
+  boot = "order=scsi0;ide2"
 
   boot_command = [
-    "<esc><wait>",
-    "e<wait>",
+    "<wait10><wait10>",
+    "e",
+    "<wait2>",
     "<down><down><down><end>",
-    " autoinstall ds='nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/'",
+    " autoinstall",
     "<f10>"
   ]
 
-  boot_wait = "10s"
+  boot_wait         = "5s"
+  boot_key_interval = "50ms"
 
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
