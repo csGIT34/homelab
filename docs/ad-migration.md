@@ -14,9 +14,9 @@ azureskylab.net (forest root)
 
 | VM | vCPU | RAM | Disk | Domain | Role |
 |----|------|-----|------|--------|------|
-| dc-01 | 2 | 4GB | 60GB | azureskylab.net | Forest root DC + DNS + Entra Connect |
-| dc-02 | 2 | 4GB | 40GB | mis.azureskylab.net | Child domain DC + DNS |
-| dc-03 | 2 | 4GB | 40GB | mas.azureskylab.net | Child domain DC + DNS |
+| dc-01 | 2 | 4GB | 40GB | azureskylab.net | Forest root DC + DNS + Entra Connect |
+| dc-02 | 2 | 4GB | 32GB | mis.azureskylab.net | Child domain DC + DNS |
+| dc-03 | 2 | 4GB | 32GB | mas.azureskylab.net | Child domain DC + DNS |
 
 All VMs on VLAN 10 (Management), stored on `local-ssd`.
 
@@ -74,7 +74,7 @@ Follow [docs/unifi-setup.md](unifi-setup.md) to:
 
 ### Create dc-01 VM
 
-- 2 vCPU, 4GB RAM, 60GB disk on `local-ssd`
+- 2 vCPU, 4GB RAM, 40GB disk on `local-ssd`
 - Network: `vmbr0`, VLAN tag 10
 - IP: 10.0.10.10/24
 - Install Windows Server 2022 Standard (Desktop Experience)
@@ -119,7 +119,7 @@ netdom query fsmo
 
 ### Create dc-02 VM
 
-- 2 vCPU, 4GB RAM, 40GB disk on `local-ssd`
+- 2 vCPU, 4GB RAM, 32GB disk on `local-ssd`
 - Network: `vmbr0`, VLAN tag 10
 - IP: 10.0.10.20/24
 - Install Windows Server 2022 Standard (Desktop Experience)
@@ -156,7 +156,7 @@ netdom query fsmo
 
 ### Create dc-03 VM
 
-- 2 vCPU, 4GB RAM, 40GB disk on `local-ssd`
+- 2 vCPU, 4GB RAM, 32GB disk on `local-ssd`
 - Network: `vmbr0`, VLAN tag 10
 - IP: 10.0.10.30/24
 - Install Windows Server 2022 Standard (Desktop Experience)

@@ -180,12 +180,12 @@ For **end devices**: Native VLAN = their network, Tagged VLAN Management = `Bloc
 | 1 | `Management` | `Allow All` | USG 4 Pro LAN1 (uplink) — **do not change native VLAN** |
 | 2 | `Management` | `Allow All` | pve-identity — LAN 1 |
 | 3 | `Management` | `Allow All` | pve-identity — LAN 2 |
-| 4 | `Management` | `Block All` | pve-identity — IPMI |
+| 4 | `Management` | `Block All` | pve-identity — IPMI (10.0.10.14) |
 | 5 | `Management` | `Allow All` | pve-r720 — LAN 1 |
 | 6 | `Management` | `Allow All` | pve-r720 — LAN 2 |
 | 7 | `Management` | `Allow All` | pve-r720 — LAN 3 |
 | 8 | `Management` | `Allow All` | pve-r720 — LAN 4 |
-| 9 | `Management` | `Block All` | pve-r720 — iDRAC |
+| 9 | `Management` | `Block All` | pve-r720 — iDRAC (10.0.10.15) |
 | 10 | `Management` | `Allow All` | pve-desktop — LAN |
 | 11 | `Management` | `Block All` | neuromancer (workstation) |
 | 12 | `Management` | `Block All` | Cloud Key Gen 2 (PoE) |

@@ -78,6 +78,8 @@ Management is the renamed default network (no VLAN tag — native/untagged).
 | 10.0.10.11 | pve-identity | Proxmox node (Intel E3-1230 v3) |
 | 10.0.10.12 | pve-r720 | Proxmox node (R720xd) |
 | 10.0.10.13 | pve-desktop | Proxmox node (5900x) |
+| 10.0.10.14 | pve-identity IPMI | Out-of-band management |
+| 10.0.10.15 | pve-r720 iDRAC | Out-of-band management |
 | 10.0.10.20 | dc-02 | AD DC / DNS (mis.azureskylab.net) |
 | 10.0.10.30 | dc-03 | AD DC / DNS (mas.azureskylab.net) |
 | 10.0.10.50 | neuromancer | Admin workstation |
