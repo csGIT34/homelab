@@ -99,6 +99,27 @@
   delegate_to: localhost
   become: false
 
+- name: Read Linkerd issuer cert
+  ansible.builtin.slurp:
+    src: "{{ playbook_dir }}/../{{ linkerd_issuer_cert_path }}"
+  register: linkerd_issuer_crt
+  delegate_to: localhost
+  become: false
+
+- name: Read Linkerd issuer key
+  ansible.builtin.set_fact:
+    linkerd_issuer_key_content: "{{ lookup('file', playbook_dir + '/../' + linkerd_issuer_key_path) }}"
+  delegate_to: localhost
+  become: false
+
+- name: Apply Linkerd identity issuer secret
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition: "{{ lookup('template', 'linkerd-identity-issuer-secret.yml.j2') | from_yaml }}"
+  delegate_to: localhost
+  become: false
+
 - name: Apply infrastructure AppProject
   kubernetes.core.k8s:
     kubeconfig: "{{ kubeconfig_path }}"
