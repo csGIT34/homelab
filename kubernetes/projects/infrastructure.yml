@@ -14,6 +14,7 @@ spec:
     - https://argoproj.github.io/argo-helm
     - https://metallb.github.io/metallb
     - https://coredns.github.io/helm
+    - https://traefik.github.io/charts
   destinations:
     - namespace: linkerd
       server: https://kubernetes.default.svc
@@ -26,6 +27,8 @@ spec:
     - namespace: metallb-system
       server: https://kubernetes.default.svc
     - namespace: coredns
+      server: https://kubernetes.default.svc
+    - namespace: traefik
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: "*"

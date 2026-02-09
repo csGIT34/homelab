@@ -62,7 +62,10 @@ spec:
               k3s-agent-02      IN  A    10.0.20.22
               k3s-agent-03      IN  A    10.0.20.23
               postgres          IN  A    10.0.30.10
-              argocd            IN  A    10.0.20.10
+              argocd            IN  A    10.0.20.80
+              linkerd           IN  A    10.0.20.80
+              traefik           IN  A    10.0.20.80
+              *                 IN  A    10.0.20.80
   destination:
     server: https://kubernetes.default.svc
     namespace: coredns
