@@ -65,6 +65,9 @@ spec:
               argocd            IN  A    10.0.20.80
               linkerd           IN  A    10.0.20.80
               traefik           IN  A    10.0.20.80
+              pve-identity      IN  A    10.0.10.11
+              pve-r720          IN  A    10.0.10.12
+              pve-desktop       IN  A    10.0.10.13
   destination:
     server: https://kubernetes.default.svc
     namespace: coredns
