@@ -15,6 +15,8 @@ spec:
     - https://metallb.github.io/metallb
     - https://coredns.github.io/helm
     - https://traefik.github.io/charts
+    - https://charts.jetstack.io
+    - https://prometheus-community.github.io/helm-charts
   destinations:
     - namespace: linkerd
       server: https://kubernetes.default.svc
@@ -29,6 +31,10 @@ spec:
     - namespace: coredns
       server: https://kubernetes.default.svc
     - namespace: traefik
+      server: https://kubernetes.default.svc
+    - namespace: cert-manager
+      server: https://kubernetes.default.svc
+    - namespace: monitoring
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: "*"

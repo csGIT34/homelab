@@ -1,0 +1,8 @@
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: home-lab-ca
+spec:
+  ca:
+    secretName: home-lab-root-ca-secret
