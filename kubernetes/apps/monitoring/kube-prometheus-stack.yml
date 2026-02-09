@@ -16,6 +16,9 @@ spec:
     targetRevision: "72.*"
     helm:
       valuesObject:
+        crds:
+          upgradeJob:
+            enabled: false
         kubeEtcd:
           enabled: false
         kubeScheduler:
