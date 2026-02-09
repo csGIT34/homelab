@@ -86,7 +86,7 @@ variable "dns_servers" {
 variable "dns_domain" {
   type        = string
   description = "DNS search domain"
-  default     = "homelab.local"
+  default     = "home.lab"
 }
 
 variable "cloud_init_file_id" {

@@ -17,7 +17,7 @@ spec:
     helm:
       valuesObject:
         dashboard:
-          enforcedHostRegexp: ^(localhost|127\.0\.0\.1|linkerd\.homelab\.local|web\.linkerd-viz\.svc\.cluster\.local|web\.linkerd-viz\.svc|\[::1\])(:\d+)?$
+          enforcedHostRegexp: ^(localhost|127\.0\.0\.1|linkerd\.home\.lab|web\.linkerd-viz\.svc\.cluster\.local|web\.linkerd-viz\.svc|\[::1\])(:\d+)?$
         resources:
           cpu:
             limit: 500m

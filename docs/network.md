@@ -92,7 +92,7 @@ Management is the renamed default network (no VLAN tag — native/untagged).
 | 10.0.20.21 | k3s-agent-01 | Worker |
 | 10.0.20.22 | k3s-agent-02 | Worker |
 | 10.0.20.23 | k3s-agent-03 | Worker |
-| 10.0.20.53 | CoreDNS (k8s svc) | Local DNS for homelab.local |
+| 10.0.20.53 | CoreDNS (k8s svc) | Local DNS for home.lab |
 
 ## IP Assignments (VLAN 30 — Database)
 
@@ -187,7 +187,7 @@ Switch LAG config: Unifi US-24 ports set to "Aggregating" operation for each bon
 
 ## DNS
 
-- Primary DNS: CoreDNS on k3s (`10.0.20.53`) — resolves `homelab.local` zone, forwards all other queries to `1.1.1.1` / `8.8.8.8`
+- Primary DNS: CoreDNS on k3s (`10.0.20.53`) — resolves `home.lab` zone, forwards all other queries to `1.1.1.1` / `8.8.8.8`
 - Fallback DNS: `1.1.1.1` — handed out as secondary via DHCP so internet DNS works if k3s is down
 - AD DNS: dc-01 (`10.0.10.10`) — only for AD-joined machines and Entra Connect testing
 - DHCP on homelab VLANs: `10.0.20.53, 1.1.1.1`

@@ -23,7 +23,7 @@ Create each network:
 - DHCP Range: `10.0.10.100 - 10.0.10.200`
 - DHCP DNS: `1.1.1.1, 8.8.8.8`
 - DHCP Lease Time: `86400` (24 hours — default)
-- Domain Name: `homelab.local`
+- Domain Name: `home.lab`
 - IGMP Snooping: Off
 - Multicast DNS: On
 - Network Isolation: Off
@@ -57,7 +57,7 @@ Create each network:
 - DHCP Range: `10.0.40.100 - 10.0.40.200`
 - DHCP DNS: `10.0.20.53, 1.1.1.1`
 - DHCP Lease Time: `86400` (24 hours — default)
-- Domain Name: `homelab.local`
+- Domain Name: `home.lab`
 - IGMP Snooping: Off
 - Multicast DNS: Off
 - Network Isolation: Off
@@ -126,7 +126,7 @@ All settings (IGMP, mDNS, isolation, lease times, domain names) are listed inlin
 - IGMP Snooping is only needed on Personal (60) and IoT (70) for streaming/multicast
 - mDNS is enabled on Management, Personal, and IoT only (3 of 8 — well within USG's 5-network mDNS limit)
 - Network Isolation is only enabled on Guest (80) to prevent guests from seeing each other
-- Homelab VLANs with DHCP enabled (Management, Sandbox) use `homelab.local` as the DHCP domain name
+- Homelab VLANs with DHCP enabled (Management, Sandbox) use `home.lab` as the DHCP domain name
 - WiFi-heavy VLANs (Work, Personal, IoT, Guest) use 8-hour DHCP leases; server VLANs use 24-hour default
 
 ## Step 2: Configure WiFi SSIDs
@@ -446,7 +446,7 @@ ping 10.0.10.1    # Should fail
 
 ```bash
 # From any VLAN — local DNS resolution via CoreDNS
-dig @10.0.20.53 postgres.homelab.local    # Should resolve to 10.0.30.10
+dig @10.0.20.53 postgres.home.lab    # Should resolve to 10.0.30.10
 dig @10.0.20.53 google.com                # Should resolve (forwarded to 1.1.1.1)
 
 # Fallback — if CoreDNS is down, 1.1.1.1 still works

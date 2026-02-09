@@ -8,7 +8,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: HostSNI(`argocd.homelab.local`)
+    - match: HostSNI(`argocd.home.lab`)
       services:
         - name: argocd-server
           port: 443

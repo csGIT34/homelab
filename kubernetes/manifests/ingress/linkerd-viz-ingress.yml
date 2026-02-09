@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: linkerd.homelab.local
+    - host: linkerd.home.lab
       http:
         paths:
           - path: /
