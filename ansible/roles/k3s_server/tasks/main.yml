@@ -10,6 +10,7 @@
       --write-kubeconfig-mode 644 \
       --tls-san {{ ansible_host }} \
       --disable traefik \
+      --disable servicelb \
       --flannel-iface eth0 \
       --node-ip {{ ansible_host }}
   args:
