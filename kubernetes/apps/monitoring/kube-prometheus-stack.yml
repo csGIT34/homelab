@@ -24,6 +24,12 @@ spec:
           enabled: false
         kubeProxy:
           enabled: false
+        prometheusOperator:
+          admissionWebhooks:
+            patch:
+              enabled: false
+            certManager:
+              enabled: true
         prometheus:
           prometheusSpec:
             retention: 15d
