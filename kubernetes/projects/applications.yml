@@ -10,6 +10,7 @@ spec:
   description: Application workloads
   sourceRepos:
     - https://github.com/csGIT34/homelab.git
+    - https://github.com/csGIT34/workouttracker.git
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
