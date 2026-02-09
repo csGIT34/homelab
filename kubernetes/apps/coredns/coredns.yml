@@ -68,6 +68,11 @@ spec:
               pve-identity      IN  A    10.0.10.11
               pve-r720          IN  A    10.0.10.12
               pve-desktop       IN  A    10.0.10.13
+              usg               IN  A    10.0.10.1
+              switch            IN  A    10.0.10.2
+              cloudkey          IN  A    10.0.10.3
+              ap-ac-pro         IN  A    10.0.10.5
+              ap-u7-pro         IN  A    10.0.10.6
   destination:
     server: https://kubernetes.default.svc
     namespace: coredns
