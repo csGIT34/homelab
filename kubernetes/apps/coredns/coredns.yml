@@ -65,7 +65,6 @@ spec:
               argocd            IN  A    10.0.20.80
               linkerd           IN  A    10.0.20.80
               traefik           IN  A    10.0.20.80
-              *                 IN  A    10.0.20.80
   destination:
     server: https://kubernetes.default.svc
     namespace: coredns
