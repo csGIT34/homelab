@@ -5,7 +5,8 @@ metadata:
   name: linkerd-viz-ingress
   namespace: linkerd-viz
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: home-lab-ca
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   ingressClassName: traefik
   rules:
@@ -19,3 +20,7 @@ spec:
                 name: web
                 port:
                   number: 8084
+  tls:
+    - secretName: linkerd-viz-tls
+      hosts:
+        - linkerd.home.lab
