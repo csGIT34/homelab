@@ -11,6 +11,7 @@ spec:
   sourceRepos:
     - https://github.com/csGIT34/homelab.git
     - https://github.com/csGIT34/workouttracker.git
+    - https://github.com/csGIT34/CorpoCache.git
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc

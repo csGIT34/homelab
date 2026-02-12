@@ -1,0 +1,79 @@
+---
+# Create a PostgreSQL database and user for an application
+#
+# Usage:
+#   ansible-playbook playbooks/create-app-db.yml -e app_name=corpocache -e app_db_password=secretpass
+#
+# Optional:
+#   -e schema_file=/path/to/schema.sql    Apply a SQL schema file after creation
+#
+# Examples:
+#   ansible-playbook playbooks/create-app-db.yml -e app_name=corpocache -e app_db_password=mypass123
+#   ansible-playbook playbooks/create-app-db.yml -e app_name=corpocache -e app_db_password=mypass123 -e schema_file=~/github/CorpoCache/sql/001_create_tables.sql
+
+- name: Create application database
+  hosts: postgres
+  become: true
+  become_user: postgres
+
+  pre_tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - app_name is defined and app_name | length > 0
+          - app_db_password is defined and app_db_password | length > 0
+        fail_msg: "Required: -e app_name=<name> -e app_db_password=<password>"
+
+  tasks:
+    - name: Create database user
+      community.postgresql.postgresql_user:
+        name: "{{ app_name }}"
+        password: "{{ app_db_password }}"
+        state: present
+
+    - name: Create database
+      community.postgresql.postgresql_db:
+        name: "{{ app_name }}"
+        owner: "{{ app_name }}"
+        state: present
+
+    - name: Grant schema privileges
+      community.postgresql.postgresql_privs:
+        database: "{{ app_name }}"
+        roles: "{{ app_name }}"
+        type: schema
+        objs: public
+        privs: ALL
+        state: present
+
+    - name: Apply schema file
+      when: schema_file is defined and schema_file | length > 0
+      block:
+        - name: Copy schema to server
+          become_user: root
+          ansible.builtin.copy:
+            src: "{{ schema_file }}"
+            dest: "/tmp/{{ app_name }}_schema.sql"
+            owner: postgres
+            mode: "0644"
+
+        - name: Run schema SQL
+          ansible.builtin.command:
+            cmd: psql -d {{ app_name }} -f /tmp/{{ app_name }}_schema.sql
+          changed_when: true
+
+        - name: Clean up schema file
+          become_user: root
+          ansible.builtin.file:
+            path: "/tmp/{{ app_name }}_schema.sql"
+            state: absent
+
+    - name: Show connection info
+      ansible.builtin.debug:
+        msg: |
+          Database created successfully!
+            Database: {{ app_name }}
+            User:     {{ app_name }}
+            Host:     {{ ansible_host }}
+            Port:     5432
+            URL:      postgresql://{{ app_name }}:<password>@{{ ansible_host }}:5432/{{ app_name }}
