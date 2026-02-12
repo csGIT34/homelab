@@ -62,6 +62,26 @@
             cmd: psql -d {{ app_name }} -f /tmp/{{ app_name }}_schema.sql
           changed_when: true
 
+        - name: Grant table privileges
+          community.postgresql.postgresql_privs:
+            database: "{{ app_name }}"
+            roles: "{{ app_name }}"
+            type: table
+            objs: ALL_IN_SCHEMA
+            schema: public
+            privs: ALL
+            state: present
+
+        - name: Grant sequence privileges
+          community.postgresql.postgresql_privs:
+            database: "{{ app_name }}"
+            roles: "{{ app_name }}"
+            type: sequence
+            objs: ALL_IN_SCHEMA
+            schema: public
+            privs: ALL
+            state: present
+
         - name: Clean up schema file
           become_user: root
           ansible.builtin.file:
