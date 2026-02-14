@@ -44,6 +44,7 @@ USG 4 Pro (10.0.10.1)
   └── LAN2 ──► (unused or secondary)
 
 Unifi APs (PoE from switch)
+  ├── SSID "MallieFi-Mgmt"  → Management (native)
   ├── SSID "MallieFi-Work"  → VLAN 50
   ├── SSID "MallieFi"       → VLAN 60
   ├── SSID "MallieFi-IoT"   → VLAN 70
@@ -54,7 +55,7 @@ Unifi APs (PoE from switch)
 
 | VLAN ID | Name | Subnet | Gateway | Type | Purpose |
 |---------|------|--------|---------|------|---------|
-| — | Management (default) | 10.0.10.0/24 | 10.0.10.1 | Wired | Proxmox, workstation, network gear |
+| — | Management (default) | 10.0.10.0/24 | 10.0.10.1 | Both | Proxmox, workstation, network gear — SSID: "MallieFi-Mgmt" |
 | 20 | Kubernetes | 10.0.20.0/24 | 10.0.20.1 | Virtual | k3s nodes (Proxmox bridge only) |
 | 30 | Database | 10.0.30.0/24 | 10.0.30.1 | Virtual | PostgreSQL (Proxmox bridge only) |
 | 40 | Sandbox | 10.0.40.0/24 | 10.0.40.1 | Virtual | On-demand test VMs (Proxmox bridge only) |
@@ -113,11 +114,12 @@ DHCP range: 10.0.40.100–10.0.40.200 (on-demand VMs)
 | 2 | Management | All VLANs | Allow | Admin access everywhere |
 | 3 | Kubernetes (20) | Database (30) | Allow | Apps need DB access |
 | 4 | Personal (60) | IoT (70) | Allow | Control smart devices |
-| 5 | Database (30) | RFC1918 | Drop | Isolated — accepts inbound only |
-| 6 | Sandbox (40) | Management | Drop | No lateral movement |
-| 7 | Work (50) | RFC1918 | Drop | Complete isolation — internet only |
-| 8 | IoT (70) | RFC1918 | Drop | Locked down — internet only |
-| 9 | Guest (80) | RFC1918 | Drop | Complete isolation — internet only |
+| 5 | Personal (60) | 10.0.20.80 (TCP 80,443) | Allow | Access k8s web apps via Traefik |
+| 6 | Database (30) | RFC1918 | Drop | Isolated — accepts inbound only |
+| 7 | Sandbox (40) | Management | Drop | No lateral movement |
+| 8 | Work (50) | RFC1918 | Drop | Complete isolation — internet only |
+| 9 | IoT (70) | RFC1918 | Drop | Locked down — internet only |
+| 10 | Guest (80) | RFC1918 | Drop | Complete isolation — internet only |
 
 **Rule order matters.** Allow rules before deny rules. Work (50) is blocked from all RFC1918, so it can't reach any local resources. See [docs/unifi-setup.md](unifi-setup.md) for step-by-step firewall rule creation.
 
@@ -192,3 +194,4 @@ Switch LAG config: Unifi US-24 ports set to "Aggregating" operation for each bon
 - AD DNS: dc-01 (`10.0.10.10`) — only for AD-joined machines and Entra Connect testing
 - DHCP on homelab VLANs: `10.0.20.53, 1.1.1.1`
 - DHCP on Work/Guest VLANs: `1.1.1.1, 8.8.8.8` (no local DNS needed)
+- **Note:** Mobile devices may query any DHCP-provided DNS server, not just the first. If `*.home.lab` fails to resolve on a phone, manually set DNS to `10.0.20.53` only in the device's WiFi settings.
