@@ -686,7 +686,7 @@ data:
                   {{ $req1 := newRequest $url1 | getResponse }}
                   {{ $latitude := $req1.JSON.String "results.0.latitude" }}
                   {{ $longitude := $req1.JSON.String "results.0.longitude" }}
-                  {{ $url2 := printf "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&temperature_unit=%s&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=America/New_York" $latitude $longitude $temp_unit }}
+                  {{ $url2 := printf "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&temperature_unit=%s&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=America/New_York" $latitude $longitude $temp_unit }}
                   {{ $req2 := newRequest $url2 | getResponse }}
                   <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
                     {{ $dates := $req2.JSON.Array "daily.time" }}
@@ -714,7 +714,7 @@ data:
                       {{ end }}
                     </div>
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-                    {{ $codes := $req2.JSON.Array "daily.weathercode" }}
+                    {{ $codes := $req2.JSON.Array "daily.weather_code" }}
                     <div style="position: relative; width: 100%; height: 30px;">
                       {{ range $index, $thiscode := $codes }}
                         {{ $code := .Int "" }}
