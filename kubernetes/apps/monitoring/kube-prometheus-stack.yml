@@ -145,6 +145,8 @@ spec:
                 datasource:
                   - name: DS_PROMETHEUS
                     value: Prometheus
+              proxmox-ve:
+                url: https://raw.githubusercontent.com/csGIT34/homelab/main/kubernetes/manifests/grafana-dashboards/proxmox-ve.json
             homelab-network:
               unpoller-network-sites:
                 gnetId: 11311
