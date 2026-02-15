@@ -103,6 +103,8 @@ spec:
                     labels:
                       instance: postgres-01
         grafana:
+          initChownData:
+            enabled: false
           persistence:
             enabled: true
             storageClassName: local-path
