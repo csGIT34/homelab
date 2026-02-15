@@ -67,6 +67,7 @@ spec:
               traefik           IN  A    10.0.20.80
               grafana           IN  A    10.0.20.80
               workout           IN  A    10.0.20.80
+              dashboard         IN  A    10.0.20.80
               cache             IN  A    10.0.20.80
               ts                IN  A    10.0.20.60
               pve-identity      IN  A    10.0.10.11

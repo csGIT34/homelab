@@ -1,0 +1,99 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: homepage
+  labels:
+    app: homepage
+data:
+  settings.yaml: |
+    title: Homelab Dashboard
+    favicon: https://github.com/gethomepage/homepage/raw/main/public/homepage.png
+    theme: dark
+    color: slate
+    headerStyle: clean
+    layout:
+      Infrastructure:
+        style: row
+        columns: 4
+      Networking:
+        style: row
+        columns: 2
+      Applications:
+        style: row
+        columns: 2
+      Database:
+        style: row
+        columns: 1
+
+  services.yaml: |
+    - Infrastructure:
+        - ArgoCD:
+            href: https://argocd.home.lab
+            description: GitOps continuous delivery
+            icon: argocd
+        - Grafana:
+            href: https://grafana.home.lab
+            description: Monitoring dashboards
+            icon: grafana
+        - Linkerd:
+            href: https://linkerd.home.lab
+            description: Service mesh
+            icon: linkerd
+        - Traefik:
+            href: https://traefik.home.lab
+            description: Ingress controller
+            icon: traefik
+        - Proxmox (pve-identity):
+            href: https://pve-identity.home.lab:8006
+            description: E3-1230 v3 / 32GB — AD & DNS
+            icon: proxmox
+        - Proxmox (pve-r720):
+            href: https://pve-r720.home.lab:8006
+            description: 2xE5-2670 / 128GB — Workers
+            icon: proxmox
+        - Proxmox (pve-desktop):
+            href: https://pve-desktop.home.lab:8006
+            description: 5900x / 32GB — Control Plane
+            icon: proxmox
+    - Networking:
+        - Unifi Controller:
+            href: https://cloudkey.home.lab:8443
+            description: USG 4 Pro + US-24-250W
+            icon: unifi
+    - Applications:
+        - Workout Tracker:
+            href: https://workout.home.lab
+            description: Fitness tracking app
+            icon: mdi-dumbbell
+        - TeamSpeak:
+            href: ts3server://ts.home.lab
+            description: Voice chat — charknoxts.duckdns.org
+            icon: teamspeak
+    - Database:
+        - PostgreSQL:
+            href: ""
+            description: 10.0.30.10 — VLAN 30
+            icon: postgres
+
+  widgets.yaml: |
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: k3s
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+
+  kubernetes.yaml: |
+    mode: cluster
+
+  bookmarks.yaml: ""
+
+  docker.yaml: ""
