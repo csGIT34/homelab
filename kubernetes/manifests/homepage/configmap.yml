@@ -73,6 +73,7 @@ data:
             icon: teamspeak
     - Database:
         - PostgreSQL:
+            href: https://pgadmin.home.lab
             description: 10.0.30.10 — VLAN 30
             icon: postgres
 
