@@ -19,7 +19,17 @@
   "links": [],
   "panels": [
     {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "repeat": "node",
+      "repeatDirection": "h",
+      "title": "$node",
+      "type": "row"
+    },
+    {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Physical block devices detected by node-exporter with model and serial info",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -44,20 +54,26 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Instance" },
+            "matcher": { "id": "byName", "options": "Device" },
             "properties": [
-              { "id": "custom.width", "value": 130 }
+              { "id": "custom.width", "value": 80 }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Device" },
+            "matcher": { "id": "byName", "options": "Model" },
             "properties": [
-              { "id": "custom.width", "value": 100 }
+              { "id": "custom.width", "value": 280 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Serial" },
+            "properties": [
+              { "id": "custom.width", "value": 200 }
             ]
           }
         ]
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
       "id": 1,
       "options": {
         "cellHeight": "sm",
@@ -69,33 +85,68 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "node_block_device_size_bytes{instance=~\"$instance\"}",
+          "expr": "node_block_device_size_bytes{instance=\"$node\", device!~\"dm-.*|loop.*\"}",
           "format": "table",
           "instant": true,
           "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "node_disk_info{instance=\"$node\", device!~\"dm-.*|loop.*\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "B"
         }
       ],
       "title": "Physical Drives",
       "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "greater",
+                  "options": { "value": 0 }
+                },
+                "fieldName": "Value #A"
+              }
+            ],
+            "match": "any",
+            "type": "include"
+          }
+        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "job": true
+              "job": true,
+              "instance": true,
+              "Value #B": true,
+              "major": true,
+              "minor": true,
+              "path": true,
+              "revision": true,
+              "wwn": true
             },
             "indexByName": {
-              "instance": 0,
-              "device": 1,
-              "model": 2,
-              "Value": 3
+              "device": 0,
+              "model": 1,
+              "serial": 2,
+              "Value #A": 3
             },
             "renameByName": {
-              "Value": "Size",
+              "Value #A": "Size",
               "device": "Device",
-              "instance": "Instance",
-              "model": "Model"
+              "model": "Model",
+              "serial": "Serial"
             }
           }
         }
@@ -104,6 +155,502 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Proxmox storage pool usage percentage",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "id": 2,
+      "options": {
+        "displayMode": "lcd",
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "(pve_disk_usage_bytes{id=~\"storage/$node/.*\"} / pve_disk_size_bytes{id=~\"storage/$node/.*\"}) * 100",
+          "format": "time_series",
+          "instant": true,
+          "legendFormat": "{{ id }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Storage Pool Utilization",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "storage/[^/]+/(.*)",
+            "renamePattern": "$1"
+          }
+        }
+      ],
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Used and free space per Proxmox storage pool",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1,
+            "scaleDistribution": { "type": "linear" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "/Free/" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "light-green", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "/Used/" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "semi-dark-red", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 9 },
+      "id": 3,
+      "options": {
+        "barRadius": 0.05,
+        "barWidth": 0.7,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right"
+        },
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "normal",
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
+          "format": "time_series",
+          "instant": true,
+          "legendFormat": "{{ id }} Used",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"} - pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
+          "format": "time_series",
+          "instant": true,
+          "legendFormat": "{{ id }} Free",
+          "refId": "B"
+        }
+      ],
+      "title": "Storage Pool Capacity",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "storage/[^/]+/(.*)",
+            "renamePattern": "$1"
+          }
+        }
+      ],
+      "type": "barchart"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Filesystem mount usage from node-exporter (ext4 and xfs)",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Size" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 110 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Used" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 110 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Available" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 110 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Usage %" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.width", "value": 100 },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "#EAB839", "value": 70 },
+                  { "color": "red", "value": 85 }
+                ]
+              }},
+              { "id": "custom.cellOptions", "value": {
+                "mode": "lcd",
+                "type": "gauge"
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Mountpoint" },
+            "properties": [
+              { "id": "custom.width", "value": 200 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Filesystem" },
+            "properties": [
+              { "id": "custom.width", "value": 80 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 19 },
+      "id": 4,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Size" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "node_filesystem_size_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "size"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "node_filesystem_avail_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "avail"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "node_filesystem_size_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"} - node_filesystem_avail_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "used"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "100 - ((node_filesystem_avail_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"} / node_filesystem_size_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}) * 100)",
+          "format": "table",
+          "instant": true,
+          "refId": "pct"
+        }
+      ],
+      "title": "Filesystem Usage",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "device": true
+            },
+            "indexByName": {
+              "mountpoint": 0,
+              "fstype": 1,
+              "Value #size": 2,
+              "Value #used": 3,
+              "Value #avail": 4,
+              "Value #pct": 5
+            },
+            "renameByName": {
+              "Value #size": "Size",
+              "Value #avail": "Available",
+              "Value #used": "Used",
+              "Value #pct": "Usage %",
+              "mountpoint": "Mountpoint",
+              "fstype": "Filesystem"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Virtual machine disk allocation and actual usage on this node",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Allocated" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 120 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Used" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 120 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "VM Name" },
+            "properties": [
+              { "id": "custom.width", "value": 200 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "VM ID" },
+            "properties": [
+              { "id": "custom.width", "value": 80 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              { "id": "custom.width", "value": 80 },
+              { "id": "mappings", "value": [
+                { "options": { "1": { "text": "Running", "color": "green" } }, "type": "value" },
+                { "options": { "0": { "text": "Stopped", "color": "red" } }, "type": "value" }
+              ]},
+              { "id": "custom.cellOptions", "value": {
+                "type": "color-text"
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Usage %" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.width", "value": 100 },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "#EAB839", "value": 70 },
+                  { "color": "red", "value": 85 }
+                ]
+              }},
+              { "id": "custom.cellOptions", "value": {
+                "mode": "lcd",
+                "type": "gauge"
+              }}
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 27 },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "Allocated,Used",
+          "reducer": ["sum"],
+          "show": true
+        },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Allocated" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "pve_disk_size_bytes{id=~\"qemu/.*\"} * on(id) group_left(name) (pve_guest_info{node=\"$node\"} > 0)",
+          "format": "table",
+          "instant": true,
+          "refId": "alloc"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "pve_disk_usage_bytes{id=~\"qemu/.*\"} * on(id) group_left() (pve_guest_info{node=\"$node\"} > 0)",
+          "format": "table",
+          "instant": true,
+          "refId": "used"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "pve_up{id=~\"qemu/.*\"} * on(id) group_left() (pve_guest_info{node=\"$node\"} > 0)",
+          "format": "table",
+          "instant": true,
+          "refId": "status"
+        }
+      ],
+      "title": "VM Disk Allocation",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Usage %",
+            "binary": {
+              "left": "Value #used",
+              "operator": "/",
+              "reducer": "sum",
+              "right": "Value #alloc"
+            },
+            "mode": "binary",
+            "reduce": { "reducer": "sum" }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Usage % display",
+            "binary": {
+              "left": "Usage %",
+              "operator": "*",
+              "reducer": "sum",
+              "right": "100"
+            },
+            "mode": "binary",
+            "reduce": { "reducer": "sum" }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "node": true,
+              "Usage %": true
+            },
+            "indexByName": {
+              "name": 0,
+              "id": 1,
+              "Value #alloc": 2,
+              "Value #used": 3,
+              "Usage % display": 4,
+              "Value #status": 5
+            },
+            "renameByName": {
+              "Value #alloc": "Allocated",
+              "Value #used": "Used",
+              "Value #status": "Status",
+              "Usage % display": "Usage %",
+              "name": "VM Name",
+              "id": "VM ID"
+            }
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "qemu/(\\d+)",
+            "renamePattern": "$1",
+            "column": "VM ID"
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Proxmox storage pool usage over time",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -140,19 +687,14 @@
             "matcher": { "id": "byRegexp", "options": "/Total/" },
             "properties": [
               { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-              { "id": "custom.fillOpacity", "value": 0 }
-            ]
-          },
-          {
-            "matcher": { "id": "byRegexp", "options": "/Free/" },
-            "properties": [
-              { "id": "custom.fillOpacity", "value": 20 }
+              { "id": "custom.fillOpacity", "value": 0 },
+              { "id": "custom.lineWidth", "value": 1 }
             ]
           }
         ]
       },
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 10 },
-      "id": 2,
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 37 },
+      "id": 6,
       "options": {
         "legend": {
           "calcs": ["lastNotNull"],
@@ -167,76 +709,35 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "node_filesystem_size_bytes{instance=~\"$instance\", fstype=\"ext4\"}",
-          "legendFormat": "{{instance}}:{{mountpoint}} Total",
+          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
+          "legendFormat": "{{ id }} Used",
           "range": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "node_filesystem_avail_bytes{instance=~\"$instance\", fstype=\"ext4\"}",
-          "legendFormat": "{{instance}}:{{mountpoint}} Free",
+          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"}",
+          "legendFormat": "{{ id }} Total",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "Filesystem Space — Total & Free",
-      "type": "timeseries"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "#EAB839", "value": 80 },
-              { "color": "red", "value": 90 }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 22 },
-      "id": 3,
-      "options": {
-        "displayMode": "lcd",
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "targets": [
+      "title": "Storage Pool Usage Over Time",
+      "transformations": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "100 - ((node_filesystem_avail_bytes{instance=~\"$instance\", fstype=\"ext4\"} * 100) / node_filesystem_size_bytes{instance=~\"$instance\", fstype=\"ext4\"})",
-          "format": "time_series",
-          "instant": true,
-          "legendFormat": "{{instance}} : {{mountpoint}}",
-          "refId": "A"
+          "id": "renameByRegex",
+          "options": {
+            "regex": "storage/[^/]+/(.*)",
+            "renamePattern": "$1"
+          }
         }
       ],
-      "title": "Filesystem Usage %",
-      "type": "bargauge"
+      "type": "timeseries"
     }
   ],
   "schemaVersion": 39,
-  "tags": ["node-exporter", "disk"],
+  "tags": ["node-exporter", "disk", "proxmox", "storage"],
   "templating": {
     "list": [
       {
@@ -246,16 +747,16 @@
           "value": ["$__all"]
         },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(node_block_device_size_bytes, instance)",
+        "definition": "label_values(pve_node_info, node)",
         "hide": 0,
         "includeAll": true,
-        "label": "Instance",
+        "label": "Node",
         "multi": true,
-        "name": "instance",
+        "name": "node",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(node_block_device_size_bytes, instance)"
+          "query": "label_values(pve_node_info, node)"
         },
         "refresh": 2,
         "regex": "",
