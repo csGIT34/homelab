@@ -201,7 +201,7 @@
           "refId": "A"
         }
       ],
-      "title": "Storage Pool Utilization",
+      "title": "Storage Pool Usage %",
       "transformations": [
         {
           "id": "renameByRegex",
@@ -292,7 +292,7 @@
           "refId": "B"
         }
       ],
-      "title": "Storage Pool Capacity",
+      "title": "Storage Pool Capacity (Used + Free)",
       "transformations": [
         {
           "id": "renameByRegex",
@@ -568,6 +568,14 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
+          "expr": "(pve_disk_usage_bytes{id=~\"qemu/.*\"} / pve_disk_size_bytes{id=~\"qemu/.*\"}) * 100 * on(id) group_left() (pve_guest_info{node=\"$node\"} > 0)",
+          "format": "table",
+          "instant": true,
+          "refId": "pct"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
           "expr": "pve_up{id=~\"qemu/.*\"} * on(id) group_left() (pve_guest_info{node=\"$node\"} > 0)",
           "format": "table",
           "instant": true,
@@ -581,34 +589,6 @@
           "options": {}
         },
         {
-          "id": "calculateField",
-          "options": {
-            "alias": "Usage %",
-            "binary": {
-              "left": "Value #used",
-              "operator": "/",
-              "reducer": "sum",
-              "right": "Value #alloc"
-            },
-            "mode": "binary",
-            "reduce": { "reducer": "sum" }
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "Usage % display",
-            "binary": {
-              "left": "Usage %",
-              "operator": "*",
-              "reducer": "sum",
-              "right": "100"
-            },
-            "mode": "binary",
-            "reduce": { "reducer": "sum" }
-          }
-        },
-        {
           "id": "organize",
           "options": {
             "excludeByName": {
@@ -616,33 +596,24 @@
               "__name__": true,
               "job": true,
               "instance": true,
-              "node": true,
-              "Usage %": true
+              "node": true
             },
             "indexByName": {
               "name": 0,
               "id": 1,
               "Value #alloc": 2,
               "Value #used": 3,
-              "Usage % display": 4,
+              "Value #pct": 4,
               "Value #status": 5
             },
             "renameByName": {
               "Value #alloc": "Allocated",
               "Value #used": "Used",
+              "Value #pct": "Usage %",
               "Value #status": "Status",
-              "Usage % display": "Usage %",
               "name": "VM Name",
               "id": "VM ID"
             }
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "qemu/(\\d+)",
-            "renamePattern": "$1",
-            "column": "VM ID"
           }
         }
       ],
