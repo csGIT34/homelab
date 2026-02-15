@@ -27,6 +27,12 @@ spec:
           enabled: false
         kubeProxy:
           enabled: false
+        prometheus-node-exporter:
+          prometheus:
+            monitor:
+              relabelings:
+                - sourceLabels: [__meta_kubernetes_pod_node_name]
+                  targetLabel: instance
         prometheusOperator:
           admissionWebhooks:
             patch:
