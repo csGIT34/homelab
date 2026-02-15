@@ -1,0 +1,58 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glance-config
+  namespace: glance
+data:
+  glance.yml: |
+    pages:
+      - name: Homelab
+        columns:
+          - size: full
+            widgets:
+              - type: monitor
+                title: Services
+                cache: 1m
+                sites:
+                  - title: ArgoCD
+                    url: https://argocd.home.lab
+                    icon: si:argo
+                    allow-insecure: true
+                  - title: Grafana
+                    url: https://grafana.home.lab
+                    icon: si:grafana
+                    allow-insecure: true
+                  - title: Linkerd
+                    url: https://linkerd.home.lab
+                    icon: si:linkerd
+                    allow-insecure: true
+                  - title: pgAdmin
+                    url: https://pgadmin.home.lab
+                    icon: si:postgresql
+                    allow-insecure: true
+                  - title: Workout Tracker
+                    url: https://workout.home.lab
+                    allow-insecure: true
+                  - title: CorpoCache
+                    url: https://cache.home.lab
+                    allow-insecure: true
+                  - title: Proxmox (pve-identity)
+                    url: https://pve-identity.home.lab:8006
+                    icon: si:proxmox
+                    allow-insecure: true
+                  - title: Proxmox (pve-r720)
+                    url: https://pve-r720.home.lab:8006
+                    icon: si:proxmox
+                    allow-insecure: true
+                  - title: Proxmox (pve-desktop)
+                    url: https://pve-desktop.home.lab:8006
+                    icon: si:proxmox
+                    allow-insecure: true
+                  - title: Unifi Controller
+                    url: https://cloudkey.home.lab
+                    icon: si:ubiquiti
+                    allow-insecure: true
+                  - title: TeamSpeak
+                    url: ts3server://ts.home.lab
+                    icon: si:teamspeak
