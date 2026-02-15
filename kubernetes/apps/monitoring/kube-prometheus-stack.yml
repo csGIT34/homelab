@@ -145,12 +145,6 @@ spec:
                 datasource:
                   - name: DS_PROMETHEUS
                     value: Prometheus
-              proxmox-ve:
-                gnetId: 10347
-                revision: 5
-                datasource:
-                  - name: DS_PROMETHEUS
-                    value: Prometheus
             homelab-network:
               unpoller-network-sites:
                 gnetId: 11311
