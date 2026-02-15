@@ -22,7 +22,7 @@ data:
         columns: 2
       Applications:
         style: row
-        columns: 2
+        columns: 3
       Database:
         style: row
         columns: 1
@@ -32,7 +32,7 @@ data:
         - ArgoCD:
             href: https://argocd.home.lab
             description: GitOps continuous delivery
-            icon: argocd
+            icon: argo-cd
         - Grafana:
             href: https://grafana.home.lab
             description: Monitoring dashboards
@@ -40,7 +40,7 @@ data:
         - Linkerd:
             href: https://linkerd.home.lab
             description: Service mesh
-            icon: linkerd
+            icon: mdi-vector-polyline
         - Traefik:
             href: https://traefik.home.lab
             description: Ingress controller
@@ -67,6 +67,10 @@ data:
             href: https://workout.home.lab
             description: Fitness tracking app
             icon: mdi-dumbbell
+        - CorpoCache:
+            href: https://cache.home.lab
+            description: Caching service
+            icon: mdi-cached
         - TeamSpeak:
             href: ts3server://ts.home.lab
             description: Voice chat — charknoxts.duckdns.org
