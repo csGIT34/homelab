@@ -113,6 +113,8 @@ DHCP range: 10.0.40.100–10.0.40.200 (on-demand VMs)
 | 1b | All VLANs | 10.0.20.53 (TCP 53) | Allow | Local DNS (TCP for large responses) |
 | 2 | Management | All VLANs | Allow | Admin access everywhere |
 | 3 | Kubernetes (20) | Database (30) | Allow | Apps need DB access |
+| 3a | Kubernetes (20) | 10.0.10.11-13 (TCP 8006,9100) | Allow | PVE API + node_exporter |
+| 3b | Kubernetes (20) | 10.0.10.3 (TCP 443) | Allow | Unifi controller for UnPoller |
 | 4 | Personal (60) | IoT (70) | Allow | Control smart devices |
 | 5 | Personal (60) | 10.0.20.80 (TCP 80,443) | Allow | Access k8s web apps via Traefik |
 | 6 | Database (30) | RFC1918 | Drop | Isolated — accepts inbound only |

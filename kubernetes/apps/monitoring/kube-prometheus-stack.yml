@@ -53,6 +53,55 @@ spec:
               limits:
                 cpu: "1"
                 memory: 2Gi
+            additionalScrapeConfigs:
+              - job_name: pve-exporter
+                metrics_path: /pve
+                static_configs:
+                  - targets:
+                      - 10.0.10.11
+                      - 10.0.10.12
+                      - 10.0.10.13
+                    labels:
+                      __metrics_path__: /pve
+                relabel_configs:
+                  - source_labels: [__address__]
+                    target_label: __param_target
+                  - source_labels: [__param_target]
+                    target_label: instance
+                  - source_labels: [__param_target]
+                    regex: "10\\.0\\.10\\.11"
+                    target_label: node
+                    replacement: pve-identity
+                  - source_labels: [__param_target]
+                    regex: "10\\.0\\.10\\.12"
+                    target_label: node
+                    replacement: pve-r720
+                  - source_labels: [__param_target]
+                    regex: "10\\.0\\.10\\.13"
+                    target_label: node
+                    replacement: pve-desktop
+                  - target_label: __address__
+                    replacement: pve-exporter.monitoring.svc:9221
+              - job_name: proxmox-node-exporter
+                static_configs:
+                  - targets:
+                      - 10.0.10.11:9100
+                    labels:
+                      instance: pve-identity
+                  - targets:
+                      - 10.0.10.12:9100
+                    labels:
+                      instance: pve-r720
+                  - targets:
+                      - 10.0.10.13:9100
+                    labels:
+                      instance: pve-desktop
+              - job_name: postgres-node-exporter
+                static_configs:
+                  - targets:
+                      - 10.0.30.10:9100
+                    labels:
+                      instance: postgres-01
         grafana:
           persistence:
             enabled: true
@@ -75,6 +124,53 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+          dashboardProviders:
+            dashboardproviders.yaml:
+              apiVersion: 1
+              providers:
+                - name: homelab-infra
+                  orgId: 1
+                  folder: Homelab Infrastructure
+                  type: file
+                  disableDeletion: false
+                  editable: true
+                  options:
+                    path: /var/lib/grafana/dashboards/homelab-infra
+                - name: homelab-network
+                  orgId: 1
+                  folder: Homelab Network
+                  type: file
+                  disableDeletion: false
+                  editable: true
+                  options:
+                    path: /var/lib/grafana/dashboards/homelab-network
+          dashboards:
+            homelab-infra:
+              node-exporter-full:
+                gnetId: 1860
+                revision: 37
+                datasource: Prometheus
+              proxmox-ve:
+                gnetId: 10347
+                revision: 5
+                datasource: Prometheus
+            homelab-network:
+              unpoller-network-sites:
+                gnetId: 11311
+                revision: 5
+                datasource: Prometheus
+              unpoller-usw:
+                gnetId: 11312
+                revision: 9
+                datasource: Prometheus
+              unpoller-usg:
+                gnetId: 11313
+                revision: 9
+                datasource: Prometheus
+              unpoller-clients:
+                gnetId: 11315
+                revision: 9
+                datasource: Prometheus
         alertmanager:
           alertmanagerSpec:
             resources:

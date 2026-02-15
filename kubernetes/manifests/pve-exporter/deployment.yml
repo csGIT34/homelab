@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pve-exporter
+  namespace: monitoring
+  labels:
+    app: pve-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pve-exporter
+  template:
+    metadata:
+      labels:
+        app: pve-exporter
+    spec:
+      containers:
+        - name: pve-exporter
+          image: prompve/prometheus-pve-exporter:latest
+          ports:
+            - name: metrics
+              containerPort: 9221
+              protocol: TCP
+          env:
+            - name: PVE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: pve-exporter-credentials
+                  key: PVE_USER
+            - name: PVE_TOKEN_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: pve-exporter-credentials
+                  key: PVE_TOKEN_NAME
+            - name: PVE_TOKEN_VALUE
+              valueFrom:
+                secretKeyRef:
+                  name: pve-exporter-credentials
+                  key: PVE_TOKEN_VALUE
+            - name: PVE_VERIFY_SSL
+              valueFrom:
+                secretKeyRef:
+                  name: pve-exporter-credentials
+                  key: PVE_VERIFY_SSL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
