@@ -195,7 +195,7 @@ data:
                 title: Unifi
                 cache: 1m
                 allow-insecure: true
-                url: https://${UNIFI_CONSOLE_IP}/proxy/network/api/stat/sites
+                url: ${UNIFI_URL}/proxy/network/api/stat/sites
                 headers:
                   X-API-KEY: ${UNIFI_API_KEY}
                   Accept: application/json
@@ -352,7 +352,7 @@ data:
                 frameless: true
                 cache: 5m
                 options:
-                  base-url: ${JELLYFIN_URL}
+                  base-url: http://jellyfin.home.lab
                   api-key: ${JELLYFIN_API_KEY}
                   user-name: "root"
                   library-name: "Movies"
@@ -637,7 +637,7 @@ data:
                 title: Weather Forecast
                 cache: 1h
                 options:
-                  location: ${WEATHER_LOCATION}
+                  location: charlotte, north carolina
                   temp_unit: "fahrenheit"
                   color_clear: "#FFA500"
                   color_partly: "#EBE387"
@@ -824,7 +824,7 @@ data:
                 title: Jellyfin Stats
                 cache: 5m
                 options:
-                  url: ${JELLYFIN_URL}
+                  url: http://jellyfin.home.lab
                   key: ${JELLYFIN_API_KEY}
                 template: |
                   {{ $url := .Options.StringOr "url" "" }}
