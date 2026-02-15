@@ -254,7 +254,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"} * on(id) group_left(storage, plugintype, content) pve_storage_info",
+          "expr": "label_replace(label_replace(label_replace(label_replace(pve_disk_size_bytes{id=~\"storage/$node/.*\"} * on(id) group_left(storage, plugintype, content) pve_storage_info, \"disk\", \"Boot Disk\", \"storage\", \"local\"), \"disk\", \"Boot Disk\", \"storage\", \"local-lvm\"), \"disk\", \"Dedicated SSD\", \"storage\", \"local-ssd\"), \"disk\", \"Dedicated HDD\", \"storage\", \"local-hdd\")",
           "format": "table",
           "instant": true,
           "refId": "total"
@@ -322,15 +322,17 @@
             },
             "indexByName": {
               "storage": 0,
-              "plugintype": 1,
-              "content": 2,
-              "Value #total": 3,
-              "Value #used": 4,
-              "Value #free": 5,
-              "Value #pct": 6
+              "disk": 1,
+              "plugintype": 2,
+              "content": 3,
+              "Value #total": 4,
+              "Value #used": 5,
+              "Value #free": 6,
+              "Value #pct": 7
             },
             "renameByName": {
               "storage": "Pool",
+              "disk": "Physical Disk",
               "plugintype": "Type",
               "content": "Content",
               "Value #total": "Total",
@@ -428,159 +430,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "OS-level filesystem mounts from node-exporter",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "custom": {
-            "align": "auto",
-            "cellOptions": { "type": "auto" },
-            "filterable": false,
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "Size" },
-            "properties": [
-              { "id": "unit", "value": "decbytes" },
-              { "id": "custom.width", "value": 110 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Used" },
-            "properties": [
-              { "id": "unit", "value": "decbytes" },
-              { "id": "custom.width", "value": 110 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Available" },
-            "properties": [
-              { "id": "unit", "value": "decbytes" },
-              { "id": "custom.width", "value": 110 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Usage %" },
-            "properties": [
-              { "id": "unit", "value": "percent" },
-              { "id": "custom.width", "value": 120 },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "#EAB839", "value": 70 },
-                  { "color": "red", "value": 85 }
-                ]
-              }},
-              { "id": "custom.cellOptions", "value": {
-                "mode": "lcd",
-                "type": "gauge"
-              }}
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Mountpoint" },
-            "properties": [
-              { "id": "custom.width", "value": 200 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Filesystem" },
-            "properties": [
-              { "id": "custom.width", "value": 80 }
-            ]
-          }
-        ]
-      },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 17 },
-      "id": 4,
-      "options": {
-        "cellHeight": "sm",
-        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
-        "showHeader": true,
-        "sortBy": [{ "desc": true, "displayName": "Size" }]
-      },
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "node_filesystem_size_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}",
-          "format": "table",
-          "instant": true,
-          "refId": "size"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "node_filesystem_avail_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}",
-          "format": "table",
-          "instant": true,
-          "refId": "avail"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "node_filesystem_size_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"} - node_filesystem_avail_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}",
-          "format": "table",
-          "instant": true,
-          "refId": "used"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "100 - ((node_filesystem_avail_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"} / node_filesystem_size_bytes{instance=\"$node\", fstype=~\"ext4|xfs\"}) * 100)",
-          "format": "table",
-          "instant": true,
-          "refId": "pct"
-        }
-      ],
-      "title": "Filesystem Mounts",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "job": true,
-              "instance": true,
-              "device": true
-            },
-            "indexByName": {
-              "mountpoint": 0,
-              "fstype": 1,
-              "Value #size": 2,
-              "Value #used": 3,
-              "Value #avail": 4,
-              "Value #pct": 5
-            },
-            "renameByName": {
-              "Value #size": "Size",
-              "Value #avail": "Available",
-              "Value #used": "Used",
-              "Value #pct": "Usage %",
-              "mountpoint": "Mountpoint",
-              "fstype": "Filesystem"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "VMs running on this node with their total disk allocation and actual usage. Note: PVE exporter does not expose which storage pool each VM disk is on.",
+      "description": "All VMs are stored on the local-ssd pool (Dedicated SSD). The local-lvm pool has 0% usage on every node, confirming no VMs use it.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -619,7 +469,7 @@
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 25 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 17 },
       "id": 5,
       "options": {
         "cellHeight": "sm",
@@ -636,7 +486,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_size_bytes{id=~\"qemu/.*\"} * on(id) group_left(name) pve_guest_info{node=\"$node\"}",
+          "expr": "label_replace(pve_disk_size_bytes{id=~\"qemu/.*\"} * on(id) group_left(name) pve_guest_info{node=\"$node\"}, \"stored_on\", \"local-ssd (Dedicated SSD)\", \"id\", \".*\")",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -676,17 +526,20 @@
               "instance 1": true,
               "instance 2": true,
               "name 2": true,
-              "id": true
+              "id": true,
+              "stored_on 2": true
             },
             "indexByName": {
               "name 1": 0,
-              "Value #A": 1,
-              "Value #B": 2
+              "stored_on 1": 1,
+              "Value #A": 2,
+              "Value #B": 3
             },
             "renameByName": {
               "Value #A": "Allocated",
               "Value #B": "Used",
-              "name 1": "VM"
+              "name 1": "VM",
+              "stored_on 1": "Stored On"
             }
           }
         }
@@ -738,7 +591,7 @@
           }
         ]
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 33 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 25 },
       "id": 6,
       "options": {
         "legend": {
