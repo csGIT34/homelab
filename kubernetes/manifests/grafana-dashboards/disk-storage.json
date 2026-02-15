@@ -29,7 +29,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Physical block devices detected by node-exporter with model and serial info",
+      "description": "Physical block devices on this host (from node-exporter)",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -155,67 +155,197 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Proxmox storage pool usage percentage",
+      "description": "Proxmox storage pools on this node. Type: dir = directory on boot disk, lvm = dedicated disk, lvmthin = thin-provisioned on boot disk. Content: images = VM disks, backup/iso = templates and backups.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
-          "max": 100,
-          "min": 0,
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "#EAB839", "value": 70 },
-              { "color": "red", "value": 85 }
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Total" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 100 }
             ]
           },
-          "unit": "percent"
-        },
-        "overrides": []
+          {
+            "matcher": { "id": "byName", "options": "Used" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Free" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Usage %" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.width", "value": 120 },
+              { "id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "#EAB839", "value": 70 },
+                  { "color": "red", "value": 85 }
+                ]
+              }},
+              { "id": "custom.cellOptions", "value": {
+                "mode": "lcd",
+                "type": "gauge"
+              }}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Pool" },
+            "properties": [
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Type" },
+            "properties": [
+              { "id": "custom.width", "value": 80 },
+              { "id": "mappings", "value": [
+                { "options": { "dir": { "text": "Directory" } }, "type": "value" },
+                { "options": { "lvm": { "text": "LVM" } }, "type": "value" },
+                { "options": { "lvmthin": { "text": "LVM Thin" } }, "type": "value" }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Content" },
+            "properties": [
+              { "id": "custom.width", "value": 130 },
+              { "id": "mappings", "value": [
+                { "options": { "images,rootdir": { "text": "VM Disks" } }, "type": "value" },
+                { "options": { "backup,import,iso,vztmpl": { "text": "ISOs / Backups" } }, "type": "value" },
+                { "options": { "backup,iso,snippets": { "text": "ISOs / Backups" } }, "type": "value" }
+              ]}
+            ]
+          }
+        ]
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
       "id": 2,
       "options": {
-        "displayMode": "lcd",
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Total" }]
       },
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "(pve_disk_usage_bytes{id=~\"storage/$node/.*\"} / pve_disk_size_bytes{id=~\"storage/$node/.*\"}) * 100",
-          "format": "time_series",
+          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"} * on(id) group_left(storage, plugintype, content) pve_storage_info",
+          "format": "table",
           "instant": true,
-          "legendFormat": "{{ id }}",
-          "refId": "A"
+          "refId": "total"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "used"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"} - pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "free"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "(pve_disk_usage_bytes{id=~\"storage/$node/.*\"} / pve_disk_size_bytes{id=~\"storage/$node/.*\"}) * 100",
+          "format": "table",
+          "instant": true,
+          "refId": "pct"
         }
       ],
-      "title": "Storage Pool Usage %",
+      "title": "Storage Pools",
       "transformations": [
         {
-          "id": "renameByRegex",
+          "id": "joinByField",
           "options": {
-            "regex": "storage/[^/]+/(.*)",
-            "renamePattern": "$1"
+            "byField": "id",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "__name__ 3": true,
+              "__name__ 4": true,
+              "job": true,
+              "job 1": true,
+              "job 2": true,
+              "job 3": true,
+              "job 4": true,
+              "instance": true,
+              "instance 1": true,
+              "instance 2": true,
+              "instance 3": true,
+              "instance 4": true,
+              "id": true,
+              "node": true
+            },
+            "indexByName": {
+              "storage": 0,
+              "plugintype": 1,
+              "content": 2,
+              "Value #total": 3,
+              "Value #used": 4,
+              "Value #free": 5,
+              "Value #pct": 6
+            },
+            "renameByName": {
+              "storage": "Pool",
+              "plugintype": "Type",
+              "content": "Content",
+              "Value #total": "Total",
+              "Value #used": "Used",
+              "Value #free": "Free",
+              "Value #pct": "Usage %"
+            }
           }
         }
       ],
-      "type": "bargauge"
+      "type": "table"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Used and free space per Proxmox storage pool",
+      "description": "Visual breakdown of used vs free space per storage pool",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -254,7 +384,7 @@
           }
         ]
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 9 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 9 },
       "id": 3,
       "options": {
         "barRadius": 0.05,
@@ -276,37 +406,29 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
+          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.*\"} * on(id) group_left(storage) pve_storage_info",
           "format": "time_series",
           "instant": true,
-          "legendFormat": "{{ id }} Used",
+          "legendFormat": "{{ storage }} — Used",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"} - pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
+          "expr": "(pve_disk_size_bytes{id=~\"storage/$node/.*\"} - pve_disk_usage_bytes{id=~\"storage/$node/.*\"}) * on(id) group_left(storage) pve_storage_info",
           "format": "time_series",
           "instant": true,
-          "legendFormat": "{{ id }} Free",
+          "legendFormat": "{{ storage }} — Free",
           "refId": "B"
         }
       ],
       "title": "Storage Pool Capacity (Used + Free)",
-      "transformations": [
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "storage/[^/]+/(.*)",
-            "renamePattern": "$1"
-          }
-        }
-      ],
+      "transformations": [],
       "type": "barchart"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Filesystem mount usage from node-exporter (ext4 and xfs)",
+      "description": "OS-level filesystem mounts from node-exporter",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -348,7 +470,7 @@
             "matcher": { "id": "byName", "options": "Usage %" },
             "properties": [
               { "id": "unit", "value": "percent" },
-              { "id": "custom.width", "value": 100 },
+              { "id": "custom.width", "value": 120 },
               { "id": "thresholds", "value": {
                 "mode": "absolute",
                 "steps": [
@@ -377,7 +499,7 @@
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 19 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 17 },
       "id": 4,
       "options": {
         "cellHeight": "sm",
@@ -419,7 +541,7 @@
           "refId": "pct"
         }
       ],
-      "title": "Filesystem Usage",
+      "title": "Filesystem Mounts",
       "transformations": [
         {
           "id": "merge",
@@ -458,7 +580,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Virtual machine disk allocation and actual usage on this node",
+      "description": "VMs running on this node with their total disk allocation and actual usage. Note: PVE exporter does not expose which storage pool each VM disk is on.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -492,12 +614,12 @@
           {
             "matcher": { "id": "byName", "options": "VM" },
             "properties": [
-              { "id": "custom.width", "value": 200 }
+              { "id": "custom.width", "value": 180 }
             ]
           }
         ]
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 27 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 25 },
       "id": 5,
       "options": {
         "cellHeight": "sm",
@@ -553,14 +675,18 @@
               "instance": true,
               "instance 1": true,
               "instance 2": true,
-              "name 2": true
+              "name 2": true,
+              "id": true
             },
-            "indexByName": {},
+            "indexByName": {
+              "name 1": 0,
+              "Value #A": 1,
+              "Value #B": 2
+            },
             "renameByName": {
               "Value #A": "Allocated",
               "Value #B": "Used",
-              "name 1": "VM",
-              "id": "VM ID"
+              "name 1": "VM"
             }
           }
         }
@@ -569,7 +695,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Proxmox storage pool usage over time",
+      "description": "Storage pool usage trends — solid lines are used space, dashed lines are total capacity",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -612,7 +738,7 @@
           }
         ]
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 37 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 33 },
       "id": 6,
       "options": {
         "legend": {
@@ -628,30 +754,22 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.*\"}",
-          "legendFormat": "{{ id }} Used",
+          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.*\"} * on(id) group_left(storage) pve_storage_info",
+          "legendFormat": "{{ storage }} Used",
           "range": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"}",
-          "legendFormat": "{{ id }} Total",
+          "expr": "pve_disk_size_bytes{id=~\"storage/$node/.*\"} * on(id) group_left(storage) pve_storage_info",
+          "legendFormat": "{{ storage }} Total",
           "range": true,
           "refId": "B"
         }
       ],
       "title": "Storage Pool Usage Over Time",
-      "transformations": [
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "storage/[^/]+/(.*)",
-            "renamePattern": "$1"
-          }
-        }
-      ],
+      "transformations": [],
       "type": "timeseries"
     }
   ],
