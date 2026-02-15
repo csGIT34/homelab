@@ -747,7 +747,7 @@
           "value": ["$__all"]
         },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(pve_node_info, node)",
+        "definition": "label_values(pve_node_info, name)",
         "hide": 0,
         "includeAll": true,
         "label": "Node",
@@ -756,7 +756,7 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(pve_node_info, node)"
+          "query": "label_values(pve_node_info, name)"
         },
         "refresh": 2,
         "regex": "",
