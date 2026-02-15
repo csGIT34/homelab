@@ -59,27 +59,11 @@ spec:
                 static_configs:
                   - targets:
                       - 10.0.10.11
-                      - 10.0.10.12
-                      - 10.0.10.13
-                    labels:
-                      __metrics_path__: /pve
                 relabel_configs:
                   - source_labels: [__address__]
                     target_label: __param_target
                   - source_labels: [__param_target]
                     target_label: instance
-                  - source_labels: [__param_target]
-                    regex: "10\\.0\\.10\\.11"
-                    target_label: node
-                    replacement: pve-identity
-                  - source_labels: [__param_target]
-                    regex: "10\\.0\\.10\\.12"
-                    target_label: node
-                    replacement: pve-r720
-                  - source_labels: [__param_target]
-                    regex: "10\\.0\\.10\\.13"
-                    target_label: node
-                    replacement: pve-desktop
                   - target_label: __address__
                     replacement: pve-exporter.monitoring.svc:9221
               - job_name: proxmox-node-exporter
@@ -151,28 +135,40 @@ spec:
               node-exporter-full:
                 gnetId: 1860
                 revision: 37
-                datasource: Prometheus
+                datasource:
+                  - name: DS_PROMETHEUS
+                    value: Prometheus
               proxmox-ve:
                 gnetId: 10347
                 revision: 5
-                datasource: Prometheus
+                datasource:
+                  - name: DS_PROMETHEUS
+                    value: Prometheus
             homelab-network:
               unpoller-network-sites:
                 gnetId: 11311
                 revision: 5
-                datasource: Prometheus
+                datasource:
+                  - name: DS_PROMETHEUS
+                    value: Prometheus
               unpoller-usw:
                 gnetId: 11312
                 revision: 9
-                datasource: Prometheus
+                datasource:
+                  - name: DS_PROMETHEUS
+                    value: Prometheus
               unpoller-usg:
                 gnetId: 11313
                 revision: 9
-                datasource: Prometheus
+                datasource:
+                  - name: DS_PROMETHEUS
+                    value: Prometheus
               unpoller-clients:
                 gnetId: 11315
                 revision: 9
-                datasource: Prometheus
+                datasource:
+                  - name: DS_PROMETHEUS
+                    value: Prometheus
         alertmanager:
           alertmanagerSpec:
             resources:
