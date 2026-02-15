@@ -490,47 +490,9 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "VM Name" },
+            "matcher": { "id": "byName", "options": "VM" },
             "properties": [
               { "id": "custom.width", "value": 200 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "VM ID" },
-            "properties": [
-              { "id": "custom.width", "value": 80 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Status" },
-            "properties": [
-              { "id": "custom.width", "value": 80 },
-              { "id": "mappings", "value": [
-                { "options": { "1": { "text": "Running", "color": "green" } }, "type": "value" },
-                { "options": { "0": { "text": "Stopped", "color": "red" } }, "type": "value" }
-              ]},
-              { "id": "custom.cellOptions", "value": {
-                "type": "color-text"
-              }}
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Usage %" },
-            "properties": [
-              { "id": "unit", "value": "percent" },
-              { "id": "custom.width", "value": 100 },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "#EAB839", "value": 70 },
-                  { "color": "red", "value": 85 }
-                ]
-              }},
-              { "id": "custom.cellOptions", "value": {
-                "mode": "lcd",
-                "type": "gauge"
-              }}
             ]
           }
         ]
@@ -541,9 +503,9 @@
         "cellHeight": "sm",
         "footer": {
           "countRows": false,
-          "fields": "Allocated,Used",
+          "fields": "",
           "reducer": ["sum"],
-          "show": true
+          "show": false
         },
         "showHeader": true,
         "sortBy": [{ "desc": true, "displayName": "Allocated" }]
@@ -552,66 +514,52 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_size_bytes{id=~\"qemu/.*\"} * on(id) group_left(name) (pve_guest_info{node=\"$node\"} > 0)",
+          "expr": "pve_disk_size_bytes{id=~\"qemu/.*\"} * on(id) group_left(name) pve_guest_info{node=\"$node\"}",
           "format": "table",
           "instant": true,
-          "refId": "alloc"
+          "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "pve_disk_usage_bytes{id=~\"qemu/.*\"} * on(id) group_left() (pve_guest_info{node=\"$node\"} > 0)",
+          "expr": "pve_disk_usage_bytes{id=~\"qemu/.*\"} * on(id) group_left(name) pve_guest_info{node=\"$node\"}",
           "format": "table",
           "instant": true,
-          "refId": "used"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "(pve_disk_usage_bytes{id=~\"qemu/.*\"} / pve_disk_size_bytes{id=~\"qemu/.*\"}) * 100 * on(id) group_left() (pve_guest_info{node=\"$node\"} > 0)",
-          "format": "table",
-          "instant": true,
-          "refId": "pct"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "pve_up{id=~\"qemu/.*\"} * on(id) group_left() (pve_guest_info{node=\"$node\"} > 0)",
-          "format": "table",
-          "instant": true,
-          "refId": "status"
+          "refId": "B"
         }
       ],
       "title": "VM Disk Allocation",
       "transformations": [
         {
-          "id": "merge",
-          "options": {}
+          "id": "joinByField",
+          "options": {
+            "byField": "id",
+            "mode": "outer"
+          }
         },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
+              "Time 1": true,
+              "Time 2": true,
               "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
               "job": true,
+              "job 1": true,
+              "job 2": true,
               "instance": true,
-              "node": true
+              "instance 1": true,
+              "instance 2": true,
+              "name 2": true
             },
-            "indexByName": {
-              "name": 0,
-              "id": 1,
-              "Value #alloc": 2,
-              "Value #used": 3,
-              "Value #pct": 4,
-              "Value #status": 5
-            },
+            "indexByName": {},
             "renameByName": {
-              "Value #alloc": "Allocated",
-              "Value #used": "Used",
-              "Value #pct": "Usage %",
-              "Value #status": "Status",
-              "name": "VM Name",
+              "Value #A": "Allocated",
+              "Value #B": "Used",
+              "name 1": "VM",
               "id": "VM ID"
             }
           }
