@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teamspeak
+  namespace: teamspeak
+  annotations:
+    metallb.universe.tf/address-pool: k8s-vlan-pool
+spec:
+  type: LoadBalancer
+  loadBalancerIP: "10.0.20.60"
+  selector:
+    app: teamspeak
+  ports:
+    - name: voice
+      port: 9987
+      targetPort: 9987
+      protocol: UDP
+    - name: filetransfer
+      port: 30033
+      targetPort: 30033
+      protocol: TCP
+    - name: webquery
+      port: 10080
+      targetPort: 10080
+      protocol: TCP
