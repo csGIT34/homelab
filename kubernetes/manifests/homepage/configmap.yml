@@ -40,7 +40,7 @@ data:
         - Linkerd:
             href: https://linkerd.home.lab
             description: Service mesh
-            icon: mdi-vector-polyline
+            icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/linkerd/icon/color/linkerd-icon-color.png
         - Traefik:
             href: https://traefik.home.lab
             description: Ingress controller
@@ -70,7 +70,7 @@ data:
         - CorpoCache:
             href: https://cache.home.lab
             description: Finance & bill tracking
-            icon: mdi-cash-register
+            icon: https://raw.githubusercontent.com/csGIT34/CorpoCache/main/favicon.ico
         - TeamSpeak:
             href: ts3server://ts.home.lab
             description: Voice chat — charknoxts.duckdns.org
