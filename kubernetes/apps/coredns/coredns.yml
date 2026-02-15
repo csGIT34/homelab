@@ -71,6 +71,7 @@ spec:
               pgadmin           IN  A    10.0.20.80
               glance            IN  A    10.0.20.80
               jellyfin          IN  A    10.0.20.80
+              speedtest         IN  A    10.0.20.80
               ts                IN  A    10.0.20.60
               glance-k8s        IN  A    10.0.20.61
               pve-identity      IN  A    10.0.10.11
