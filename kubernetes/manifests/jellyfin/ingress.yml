@@ -6,7 +6,7 @@ metadata:
   namespace: jellyfin
   annotations:
     cert-manager.io/cluster-issuer: home-lab-ca
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
   ingressClassName: traefik
   rules:
