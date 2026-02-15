@@ -14,7 +14,7 @@ data:
               - type: custom-api
                 title: Proxmox-VE Stats
                 cache: 1m
-                url: https://${PROXMOXVE_URL}/api2/json/cluster/resources
+                url: ${PROXMOXVE_URL}/api2/json/cluster/resources
                 allow-insecure: true
                 headers:
                   Accept: application/json
@@ -53,7 +53,7 @@ data:
                 title: Proxmox-VE Nodes
                 title-url: https://${PROXMOXVE_URL}
                 cache: 1m
-                url: https://${PROXMOXVE_URL}/api2/json/nodes
+                url: ${PROXMOXVE_URL}/api2/json/nodes
                 allow-insecure: true
                 headers:
                   Accept: application/json
@@ -531,7 +531,7 @@ data:
               - type: custom-api
                 title: Proxmox-VE Resources
                 cache: 1m
-                url: https://${PROXMOXVE_URL}/api2/json/cluster/resources
+                url: ${PROXMOXVE_URL}/api2/json/cluster/resources
                 allow-insecure: true
                 headers:
                   Accept: application/json
@@ -637,7 +637,7 @@ data:
                 title: Weather Forecast
                 cache: 1h
                 options:
-                  location: charlotte, north carolina
+                  location: charlotte
                   temp_unit: "fahrenheit"
                   color_clear: "#FFA500"
                   color_partly: "#EBE387"
