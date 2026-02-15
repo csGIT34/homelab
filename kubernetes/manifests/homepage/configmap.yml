@@ -41,10 +41,6 @@ data:
             href: https://linkerd.home.lab
             description: Service mesh
             icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/linkerd/icon/color/linkerd-icon-color.png
-        - Traefik:
-            href: https://traefik.home.lab
-            description: Ingress controller
-            icon: traefik
         - Proxmox (pve-identity):
             href: https://pve-identity.home.lab:8006
             description: E3-1230 v3 / 32GB — AD & DNS
@@ -59,7 +55,7 @@ data:
             icon: proxmox
     - Networking:
         - Unifi Controller:
-            href: https://cloudkey.home.lab:8443
+            href: https://cloudkey.home.lab
             description: USG 4 Pro + US-24-250W
             icon: unifi
     - Applications:
@@ -77,7 +73,6 @@ data:
             icon: teamspeak
     - Database:
         - PostgreSQL:
-            href: ""
             description: 10.0.30.10 — VLAN 30
             icon: postgres
 
