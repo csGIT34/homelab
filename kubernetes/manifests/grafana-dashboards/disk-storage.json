@@ -40,10 +40,7 @@
             "matcher": { "id": "byName", "options": "Size" },
             "properties": [
               { "id": "unit", "value": "decbytes" },
-              { "id": "custom.width", "value": 150 },
-              { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "gauge" } },
-              { "id": "color", "value": { "mode": "continuous-BlPu" } },
-              { "id": "max", "value": 3200000000000 }
+              { "id": "custom.width", "value": 120 }
             ]
           },
           {
