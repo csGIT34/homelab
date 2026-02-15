@@ -53,6 +53,11 @@ data:
                     url: https://cloudkey.home.lab
                     icon: si:ubiquiti
                     allow-insecure: true
-                  - title: TeamSpeak
-                    url: ts3server://ts.home.lab
-                    icon: si:teamspeak
+              - type: bookmarks
+                title: Other Services
+                groups:
+                  - title: Voice
+                    links:
+                      - title: TeamSpeak
+                        url: ts3server://ts.home.lab
+                        icon: si:teamspeak

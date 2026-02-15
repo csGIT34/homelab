@@ -18,6 +18,18 @@ spec:
       labels:
         app: glance
     spec:
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - "10.0.20.53"
+        searches:
+          - "home.lab"
+          - "glance.svc.cluster.local"
+          - "svc.cluster.local"
+          - "cluster.local"
+        options:
+          - name: ndots
+            value: "5"
       containers:
         - name: glance
           image: glanceapp/glance:latest
