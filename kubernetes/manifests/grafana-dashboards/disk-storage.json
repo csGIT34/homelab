@@ -22,6 +22,93 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Size" },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "custom.width", "value": 150 },
+              { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "gauge" } },
+              { "id": "color", "value": { "mode": "continuous-BlPu" } },
+              { "id": "max", "value": 3200000000000 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Instance" },
+            "properties": [
+              { "id": "custom.width", "value": 130 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Device" },
+            "properties": [
+              { "id": "custom.width", "value": 100 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Size" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "node_block_device_size_bytes{instance=~\"$instance\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Physical Drives",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true
+            },
+            "indexByName": {
+              "instance": 0,
+              "device": 1,
+              "model": 2,
+              "Value": 3
+            },
+            "renameByName": {
+              "Value": "Size",
+              "device": "Device",
+              "instance": "Instance",
+              "model": "Model"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "axisBorderShow": false,
@@ -67,8 +154,8 @@
           }
         ]
       },
-      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 0 },
-      "id": 1,
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 10 },
+      "id": 2,
       "options": {
         "legend": {
           "calcs": ["lastNotNull"],
@@ -97,7 +184,7 @@
           "refId": "B"
         }
       ],
-      "title": "Disk Space — Total & Free",
+      "title": "Filesystem Space — Total & Free",
       "type": "timeseries"
     },
     {
@@ -119,8 +206,8 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
-      "id": 2,
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 22 },
+      "id": 3,
       "options": {
         "displayMode": "lcd",
         "minVizHeight": 16,
@@ -147,7 +234,7 @@
           "refId": "A"
         }
       ],
-      "title": "Disk Usage %",
+      "title": "Filesystem Usage %",
       "type": "bargauge"
     }
   ],
@@ -162,7 +249,7 @@
           "value": ["$__all"]
         },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(node_filesystem_size_bytes{fstype=\"ext4\"}, instance)",
+        "definition": "label_values(node_block_device_size_bytes, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -171,7 +258,7 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(node_filesystem_size_bytes{fstype=\"ext4\"}, instance)"
+          "query": "label_values(node_block_device_size_bytes, instance)"
         },
         "refresh": 2,
         "regex": "",
@@ -186,5 +273,5 @@
   "timezone": "",
   "title": "Disk Storage",
   "uid": "disk-storage",
-  "version": 1
+  "version": 2
 }
