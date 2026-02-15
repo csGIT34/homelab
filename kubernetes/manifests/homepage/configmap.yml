@@ -69,8 +69,8 @@ data:
             icon: mdi-dumbbell
         - CorpoCache:
             href: https://cache.home.lab
-            description: Caching service
-            icon: mdi-cached
+            description: Finance & bill tracking
+            icon: mdi-cash-register
         - TeamSpeak:
             href: ts3server://ts.home.lab
             description: Voice chat — charknoxts.duckdns.org
