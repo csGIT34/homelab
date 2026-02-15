@@ -41,6 +41,7 @@ spec:
               enabled: true
         prometheus:
           prometheusSpec:
+            enableAdminAPI: true
             retention: 15d
             serviceMonitorSelectorNilUsesHelmValues: false
             storageSpec:
