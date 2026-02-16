@@ -446,6 +446,10 @@ data:
                     url: https://n8n.home.lab
                     icon: si:n8n
                     allow-insecure: true
+                  - title: Harbor Registry
+                    url: https://registry.home.lab
+                    icon: si:harbor
+                    allow-insecure: true
                   - title: Proxmox (pve-identity)
                     url: https://pve-identity.home.lab:8006
                     icon: si:proxmox
