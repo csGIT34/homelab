@@ -589,10 +589,12 @@ data:
                             {{ if $.Options.BoolOr "ram_graph" true }}
                               <div class="col col-ram">
                                 {{- if and (or (eq $type "qemu") (eq $type "lxc")) (gt (.Float "maxmem") 0.0) -}}
+                                  {{- $ramPct := mul (div (.Float "mem") (.Float "maxmem")) 100 | toInt -}}
+                                  {{- if gt $ramPct 100 }}{{ $ramPct = 100 }}{{ end -}}
                                   <div data-popover-type="html">
                                     <div data-popover-html>Usage: {{ printf "%.1f" (div (.Float "mem") $bytesInGB) }}GB<br>Total: {{ printf "%.1f" (div (.Float "maxmem") $bytesInGB) }}GB</div>
-                                    <div class="stat-header"><span class="stat-percent">{{ mul (div (.Float "mem") (.Float "maxmem")) 100 | toInt }}%</span></div>
-                                    <div class="progress-bar"><div class="progress-value{{ if ge (mul (div (.Float "mem") (.Float "maxmem")) 100 | toInt) 80 }} progress-value-notice{{ end }}" style="--percent: {{ mul (div (.Float "mem") (.Float "maxmem")) 100 | toInt }}"></div></div>
+                                    <div class="stat-header"><span class="stat-percent">{{ $ramPct }}%</span></div>
+                                    <div class="progress-bar"><div class="progress-value{{ if ge $ramPct 80 }} progress-value-notice{{ end }}" style="--percent: {{ $ramPct }}"></div></div>
                                   </div>
                                 {{- end -}}
                               </div>
