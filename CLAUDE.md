@@ -31,6 +31,7 @@ homelab/
 │   │   ├── linkerd/
 │   │   ├── metallb/
 │   │   ├── monitoring/
+│   │   ├── speedtest-tracker/
 │   │   ├── traefik/
 │   │   └── workout-tracker/
 │   └── manifests/
@@ -204,6 +205,7 @@ spec:
 | App | Namespace | Source Repo | Access |
 |-----|-----------|-------------|--------|
 | Workout Tracker | workout-tracker | csGIT34/workouttracker (k8s/) | https://workout.home.lab |
+| Speedtest Tracker | speedtest-tracker | homelab (kubernetes/manifests/speedtest-tracker/) | https://speedtest.home.lab |
 
 ## External PostgreSQL
 
