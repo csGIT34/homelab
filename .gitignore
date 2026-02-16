@@ -50,3 +50,4 @@ ansible/roles/argocd/files/*.key
 # Environment
 .env
 .env.*
+home-lab-root-ca.crt
