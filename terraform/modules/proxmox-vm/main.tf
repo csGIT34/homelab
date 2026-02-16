@@ -14,6 +14,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   description = var.description
   tags        = var.tags
+  machine     = var.machine
 
   clone {
     vm_id = var.clone_template_id
@@ -42,6 +43,17 @@ resource "proxmox_virtual_environment_vm" "vm" {
     bridge  = "vmbr0"
     model   = "virtio"
     vlan_id = var.vlan_id
+  }
+
+  dynamic "hostpci" {
+    for_each = var.hostpci
+    content {
+      device  = hostpci.value.device
+      mapping = hostpci.value.mapping
+      pcie    = hostpci.value.pcie
+      rombar  = hostpci.value.rombar
+      xvga    = hostpci.value.xvga
+    }
   }
 
   agent {

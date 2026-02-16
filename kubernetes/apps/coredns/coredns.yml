@@ -73,6 +73,7 @@ spec:
               jellyfin          IN  A    10.0.20.80
               speedtest         IN  A    10.0.20.80
               linkwarden        IN  A    10.0.20.80
+              ollama            IN  A    10.0.20.30
               glance-k8s        IN  A    10.0.20.61
               pve-identity      IN  A    10.0.10.11
               pve-r720          IN  A    10.0.10.12

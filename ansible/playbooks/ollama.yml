@@ -1,0 +1,6 @@
+---
+- name: Configure Ollama inference server
+  hosts: ollama
+  roles:
+    - common
+    - ollama

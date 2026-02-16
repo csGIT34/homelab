@@ -16,6 +16,7 @@ homelab/
 │   └── stacks/
 │       ├── k3s-cluster/          # k3s control plane + workers
 │       ├── database/             # PostgreSQL VM
+│       ├── ollama/               # Ollama inference server (GPU passthrough)
 │       └── sandbox/              # On-demand test VMs
 ├── ansible/                      # Post-provisioning playbooks + roles
 ├── cloud-init/                   # Cloud-init configs (base, k8s, postgres)
@@ -49,6 +50,7 @@ homelab/
 | k3s-agent-02 | 10.0.20.22 | Worker |
 | k3s-agent-03 | 10.0.20.23 | Worker |
 | postgres-01 | 10.0.30.10 | External PostgreSQL (VLAN 30) |
+| ollama-01 | 10.0.20.30 | Ollama inference server (GPU passthrough, VLAN 20) |
 
 ### Key IPs
 
@@ -57,6 +59,7 @@ homelab/
 | Traefik LB | 10.0.20.80 | `*.home.lab` ingress |
 | CoreDNS LB | 10.0.20.53 | Internal DNS |
 | PostgreSQL | 10.0.30.10 | `postgres.home.lab` |
+| Ollama | 10.0.20.30 | `ollama.home.lab` |
 
 ### Kubeconfig
 

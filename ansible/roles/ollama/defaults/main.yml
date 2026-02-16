@@ -1,0 +1,6 @@
+---
+ollama_host: "0.0.0.0"
+ollama_port: 11434
+nvidia_driver_version: 550
+ollama_models:
+  - llama3.2

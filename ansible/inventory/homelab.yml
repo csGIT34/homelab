@@ -20,3 +20,7 @@ all:
       hosts:
         postgres-01:
           ansible_host: 10.0.30.10
+    ollama:
+      hosts:
+        ollama-01:
+          ansible_host: 10.0.20.30

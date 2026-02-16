@@ -12,3 +12,6 @@
 
 - name: Deploy ArgoCD
   ansible.builtin.import_playbook: argocd.yml
+
+- name: Configure Ollama
+  ansible.builtin.import_playbook: ollama.yml

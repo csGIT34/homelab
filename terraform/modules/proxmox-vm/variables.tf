@@ -111,3 +111,21 @@ variable "on_boot" {
   description = "Start VM on host boot"
   default     = true
 }
+
+variable "machine" {
+  type        = string
+  description = "Machine type (pc or q35). Use q35 for PCIe passthrough."
+  default     = null
+}
+
+variable "hostpci" {
+  type = list(object({
+    device  = string
+    mapping = optional(string)
+    pcie    = optional(bool)
+    rombar  = optional(bool)
+    xvga    = optional(bool)
+  }))
+  description = "PCI device passthrough mappings"
+  default     = []
+}
