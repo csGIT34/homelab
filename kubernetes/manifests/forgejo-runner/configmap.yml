@@ -16,5 +16,6 @@ data:
 
     container:
       network: bridge
-      options: "--dns 10.0.20.53 -e GIT_SSL_NO_VERIFY=true"
-      valid_volumes: []
+      options: "--dns 10.0.20.53 -e GIT_SSL_NO_VERIFY=true -v /var/run/docker.sock:/var/run/docker.sock"
+      valid_volumes:
+        - /var/run/docker.sock
