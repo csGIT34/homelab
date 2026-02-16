@@ -1,6 +1,6 @@
 proxmox_endpoint = "https://10.0.10.13:8006"
 
-clone_template_id = 9000
+clone_template_id = 9001
 target_node       = "pve-desktop"
 
 cores     = 8
