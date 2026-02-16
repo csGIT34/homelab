@@ -446,6 +446,10 @@ data:
                     url: https://n8n.home.lab
                     icon: si:n8n
                     allow-insecure: true
+                  - title: Open WebUI
+                    url: https://chat.home.lab
+                    icon: si:openai
+                    allow-insecure: true
                   - title: Harbor Registry
                     url: https://registry.home.lab
                     icon: si:harbor
