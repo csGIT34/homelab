@@ -1,37 +1,50 @@
 # Homelab Infrastructure
 
-IaC-driven homelab running Proxmox VE across 3 nodes, provisioning Kubernetes (k3s), PostgreSQL, and on-demand sandbox VMs with Terraform, Packer, and Ansible.
+IaC-driven homelab running Proxmox VE across 3 nodes, provisioning Kubernetes (k3s), PostgreSQL, and on-demand sandbox VMs with Terraform, Packer, and Ansible. Kubernetes workloads are deployed via ArgoCD GitOps with Forgejo CI/CD.
 
 ## Architecture
 
 ```
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│  pve-identity   │  │    pve-r720     │  │   pve-desktop   │
-│  Intel E3-1230  │  │  2x E5-2670    │  │   Ryzen 5900x   │
-│  32GB RAM       │  │  128GB RAM      │  │   32GB RAM      │
-│                 │  │                 │  │                 │
-│  dc-01 (AD/DNS/ │  │  k3s-agent-01  │  │  k3s-server-01  │
-│    Entra Connect)│  │  k3s-agent-02  │  │                 │
-│  dc-02 (AD/DNS) │  │  k3s-agent-03  │  │                 │
-│  dc-03 (AD/DNS) │  │  postgres-01   │  │                 │
-│                 │  │  sandbox VMs   │  │                 │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
-         │                    │                    │
-         └────────────────────┼────────────────────┘
-                              │
-                     US-24-250W Switch (trunk)
-                              │
-                         USG 4 Pro
-                              │
-                          Internet
+                            ┌──────────────────────────────────────────┐
+                            │              Internet                     │
+                            └──────────────────┬───────────────────────┘
+                                               │
+                            ┌──────────────────┴───────────────────────┐
+                            │          USG 4 Pro (10.0.10.1)           │
+                            │            Router / Firewall              │
+                            └──────────────────┬───────────────────────┘
+                                               │
+                            ┌──────────────────┴───────────────────────┐
+                            │     US-24-250W PoE Switch (10.0.10.2)    │
+                            │          VLAN Trunk to All Nodes          │
+                            └───┬──────────────┬───────────────┬───────┘
+                                │              │               │
+                ┌───────────────┴──┐  ┌────────┴───────┐  ┌───┴───────────────┐
+                │   pve-identity   │  │    pve-r720    │  │    pve-desktop    │
+                │  E3-1230 / 32GB  │  │ 2xE5-2670     │  │   5900x / 32GB    │
+                │                  │  │ 128GB RAM      │  │   RTX 3090        │
+                │  dc-01 (AD/DNS)  │  │                │  │                   │
+                │  dc-02 (AD/DNS)  │  │ k3s-agent-01   │  │  k3s-server-01    │
+                │  dc-03 (AD/DNS)  │  │ k3s-agent-02   │  │  ollama-01 (GPU)  │
+                │  NFS media share │  │ k3s-agent-03   │  │                   │
+                │                  │  │ postgres-01    │  │                   │
+                │                  │  │ sandbox VMs    │  │                   │
+                └──────────────────┘  └────────────────┘  └───────────────────┘
+
+                                    ┌──────────────────────┐
+                                    │     Workstation       │
+                                    │   10.0.10.40          │
+                                    │   RTX 5090 (32GB)     │
+                                    │   Ollama inference    │
+                                    └──────────────────────┘
 ```
 
 ## Network
 
 | VLAN | Name | Subnet | Purpose |
 |------|------|--------|---------|
-| 10 | Management | 10.0.10.0/24 | Proxmox, admin access |
-| 20 | Kubernetes | 10.0.20.0/24 | k3s cluster |
+| — | Management | 10.0.10.0/24 | Proxmox hosts, admin access, workstation |
+| 20 | Kubernetes | 10.0.20.0/24 | k3s cluster, Ollama VM |
 | 30 | Database | 10.0.30.0/24 | PostgreSQL |
 | 40 | Sandbox | 10.0.40.0/24 | Test VMs |
 | 50 | Work | 10.0.50.0/24 | Work WiFi |
@@ -41,16 +54,93 @@ IaC-driven homelab running Proxmox VE across 3 nodes, provisioning Kubernetes (k
 
 See [docs/network.md](docs/network.md) for full VLAN map, firewall rules, and IP assignments.
 
+## Kubernetes Services
+
+ArgoCD manages all workloads via an app-of-apps pattern. Infrastructure services are deployed from Helm charts; applications use raw manifests or external repos.
+
+### Infrastructure
+
+| Service | Access | Description |
+|---------|--------|-------------|
+| ArgoCD | [argocd.home.lab](https://argocd.home.lab) | GitOps deployment engine |
+| Traefik | 10.0.20.80 | Ingress controller + TLS termination |
+| MetalLB | 10.0.20.50–99 | Bare-metal load balancer (L2 mode) |
+| CoreDNS | 10.0.20.53 | Internal DNS for `home.lab` zone |
+| cert-manager | — | Auto-provisioned TLS via internal CA |
+| Prometheus + Grafana | [grafana.home.lab](https://grafana.home.lab) | Monitoring, 6 dashboards |
+
+### Applications
+
+| App | Access | Description |
+|-----|--------|-------------|
+| Glance | [glance.home.lab](https://glance.home.lab) | Startpage with infra widgets |
+| Linkwarden | [linkwarden.home.lab](https://linkwarden.home.lab) | Bookmark manager + Meilisearch |
+| Jellyfin | [jellyfin.home.lab](https://jellyfin.home.lab) | Media server (NFS-backed) |
+| Open WebUI | [chat.home.lab](https://chat.home.lab) | Chat UI for local LLMs |
+| LiteLLM | [llm.home.lab](https://llm.home.lab) | Multi-GPU OpenAI-compatible API proxy |
+| n8n | [n8n.home.lab](https://n8n.home.lab) | Workflow automation |
+| Forgejo | [git.home.lab](https://git.home.lab) | Git forge + CI/CD (Actions) |
+| Harbor | [registry.home.lab](https://registry.home.lab) | Container registry + Trivy scanning |
+| pgAdmin | [pgadmin.home.lab](https://pgadmin.home.lab) | PostgreSQL admin UI |
+| Speedtest Tracker | [speedtest.home.lab](https://speedtest.home.lab) | Automated speed tests |
+| Workout Tracker | [workout.home.lab](https://workout.home.lab) | Exercise tracking app |
+| CorpoCache | [cache.home.lab](https://cache.home.lab) | Corporate cache tool |
+| Redis | internal | Shared key-value store |
+
+## AI / LLM Infrastructure
+
+Two Ollama backends are aggregated behind LiteLLM for unified model access:
+
+```
+                        ┌──────────────────┐
+                        │   Open WebUI      │
+                        │  chat.home.lab    │
+                        └────────┬─────────┘
+                                 │
+                        ┌────────┴─────────┐
+                        │     LiteLLM      │
+                        │  llm.home.lab    │
+                        │  (API gateway)   │
+                        └──┬───────────┬───┘
+                           │           │
+              ┌────────────┴──┐  ┌─────┴────────────┐
+              │  ollama-01    │  │   Workstation     │
+              │  RTX 3090     │  │   RTX 5090        │
+              │  24GB VRAM    │  │   32GB VRAM       │
+              │  10.0.20.30   │  │   10.0.10.40      │
+              │  vm/<model>   │  │   ws/<model>      │
+              └───────────────┘  └───────────────────┘
+```
+
+- **`vm/<model>`** — routes to RTX 3090 (Proxmox VM)
+- **`ws/<model>`** — routes to RTX 5090 (Workstation)
+- **`ollama/<model>`** — load-balanced across both
+
+## CI/CD Pipeline
+
+```
+Developer pushes to Forgejo (git@git.home.lab)
+  → Forgejo Actions triggers CI workflow
+    → Runner builds Docker image (DinD sidecar)
+    → Pushes to Harbor (registry.home.lab)
+  → Forgejo push-mirrors to GitHub (backup)
+  → ArgoCD watches repo for manifest changes → deploys
+```
+
 ## Toolchain
 
 | Tool | Purpose |
 |------|---------|
-| Proxmox VE 9.x | Hypervisor |
+| Proxmox VE 8.x | Hypervisor (3-node cluster) |
 | Terraform + bpg/proxmox | VM provisioning |
-| Packer | VM template builds |
-| Cloud-init | First-boot config |
-| Ansible | Post-provisioning (k3s, PostgreSQL) |
+| Packer | VM template builds (Ubuntu 24.04) |
+| Cloud-init | First-boot configuration |
+| Ansible | Post-provisioning (k3s, PostgreSQL, Ollama) |
 | k3s | Lightweight Kubernetes |
+| ArgoCD | GitOps continuous deployment |
+| Traefik | Ingress + TLS via internal CA |
+| Forgejo | Git forge + Actions CI |
+| Harbor | Container registry |
 
 ## Quick Start
 
@@ -67,11 +157,14 @@ packer build -var-file=variables.pkr.hcl .
 ```bash
 # k3s cluster
 cd terraform/stacks/k3s-cluster/
-terraform init && terraform plan
-terraform apply
+terraform init && terraform apply
 
 # PostgreSQL
 cd ../database/
+terraform init && terraform apply
+
+# Ollama inference server
+cd ../ollama/
 terraform init && terraform apply
 
 # Sandbox (set vm_count > 0 in terraform.tfvars)
@@ -93,21 +186,31 @@ export KUBECONFIG=ansible/kubeconfig
 kubectl get nodes
 ```
 
+### 5. Bootstrap GitOps
+
+ArgoCD is deployed via Ansible and watches `kubernetes/apps/` for Application CRs. Push changes to git and ArgoCD syncs automatically.
+
 ## Repository Structure
 
 ```
 homelab/
-├── packer/ubuntu-2404/       # VM template (Packer + cloud-init autoinstall)
+├── packer/ubuntu-2404/           # VM template (Packer + cloud-init autoinstall)
 ├── terraform/
-│   ├── modules/proxmox-vm/   # Reusable VM module
+│   ├── modules/proxmox-vm/       # Reusable VM module
 │   └── stacks/
-│       ├── k3s-cluster/      # k3s control plane + workers
-│       ├── database/         # PostgreSQL
-│       └── sandbox/          # On-demand test VMs
-├── ansible/                  # Post-provisioning playbooks + roles
-├── cloud-init/               # Cloud-init configs (base, k8s, postgres)
-├── scripts/                  # Proxmox host setup, API token generation
-└── docs/                     # Network design, Unifi setup, AD migration
+│       ├── k3s-cluster/          # k3s control plane + workers
+│       ├── database/             # PostgreSQL VM
+│       ├── ollama/               # Ollama inference server (GPU passthrough)
+│       └── sandbox/              # On-demand test VMs
+├── ansible/                      # Post-provisioning playbooks + roles
+├── cloud-init/                   # Cloud-init configs (base, k8s, postgres)
+├── scripts/                      # Proxmox host setup, API token generation
+├── kubernetes/
+│   ├── root-app.yml              # ArgoCD bootstrap (app-of-apps)
+│   ├── projects/                 # ArgoCD AppProjects
+│   ├── apps/                     # ArgoCD Application CRs (auto-discovered)
+│   └── manifests/                # Raw k8s manifests for in-repo apps
+└── docs/                         # Network design, Unifi setup, AD migration
 ```
 
 ## Documentation
