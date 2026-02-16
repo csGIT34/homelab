@@ -27,7 +27,7 @@ spec:
               protocol: TCP
           env:
             - name: OLLAMA_BASE_URL
-              value: http://ollama.home.lab:11434
+              value: http://10.0.20.30:11434
           volumeMounts:
             - name: data
               mountPath: /app/backend/data
