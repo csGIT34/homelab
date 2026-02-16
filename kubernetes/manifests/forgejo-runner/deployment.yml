@@ -23,14 +23,13 @@ spec:
             - sh
             - -c
             - |
-              cp /ca/home-lab-root-ca.crt /usr/local/share/ca-certificates/ 2>/dev/null && update-ca-certificates 2>/dev/null || true
               while ! nc -z localhost 2376; do
                 echo "Waiting for DinD to be ready..."
                 sleep 2
               done
               if [ ! -f /data/.runner ]; then
                 forgejo-runner register --no-interactive \
-                  --instance https://git.home.lab \
+                  --instance http://git.home.lab \
                   --token $(cat /secret/token) \
                   --name k8s-runner \
                   --labels "ubuntu-latest:docker://node:20-bookworm,docker:docker://docker:27"
@@ -54,9 +53,6 @@ spec:
               mountPath: /data
             - name: runner-secret
               mountPath: /secret
-              readOnly: true
-            - name: home-lab-ca
-              mountPath: /ca
               readOnly: true
           resources:
             requests:
