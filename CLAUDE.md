@@ -29,6 +29,7 @@ homelab/
 │   │   ├── cert-manager/
 │   │   ├── coredns/
 │   │   ├── linkerd/
+│   │   ├── linkwarden/
 │   │   ├── metallb/
 │   │   ├── monitoring/
 │   │   ├── speedtest-tracker/
@@ -204,6 +205,7 @@ spec:
 
 | App | Namespace | Source Repo | Access |
 |-----|-----------|-------------|--------|
+| Linkwarden | linkwarden | homelab (kubernetes/manifests/linkwarden/) | https://linkwarden.home.lab |
 | Workout Tracker | workout-tracker | csGIT34/workouttracker (k8s/) | https://workout.home.lab |
 | Speedtest Tracker | speedtest-tracker | homelab (kubernetes/manifests/speedtest-tracker/) | https://speedtest.home.lab |
 
@@ -268,6 +270,49 @@ kubectl get application <name> -n argocd -o jsonpath='{.status.operationState.sy
 Common issues:
 - **"resource not permitted in project"** — Update the AppProject's `sourceRepos`, `destinations`, or resource whitelists, then `kubectl apply` the project file
 - **Stuck retrying old revision** — Clear the operation: `kubectl patch application <name> -n argocd --type merge -p '{"operation": null}'`
+
+## Secrets Management
+
+All secrets are stored in `pass` (GPG-backed password store) under the `homelab/` prefix.
+
+```bash
+# List all secrets
+pass homelab/
+
+# Retrieve a secret
+pass homelab/<app>/<key-name>
+
+# Store a new secret
+echo 'value' | pass insert -e homelab/<app>/<key-name>
+```
+
+### Secret Inventory
+
+| pass path | K8s Secret | Namespace | Description |
+|-----------|-----------|-----------|-------------|
+| `homelab/glance/github-token` | glance-secrets | glance | GitHub API token for repo widget |
+| `homelab/glance/jellyfin-api-key` | glance-secrets | glance | Jellyfin API key for media widgets |
+| `homelab/glance/unifi-api-key` | glance-secrets | glance | Unifi controller API key |
+| `homelab/glance/speedtest-tracker-api-token` | glance-secrets | glance | Speedtest Tracker API token |
+| `homelab/linkwarden/*` | linkwarden-secrets | linkwarden | DB password, NextAuth, Meili key, API key |
+| `homelab/proxmox/monitoring-*` | pve-exporter-credentials | monitoring | PVE API token (`prometheus@pve!monitoring`) |
+| `homelab/unifi/unpoller-*` | unpoller-credentials | monitoring | UnPoller read-only user credentials |
+| `homelab/speedtest-tracker/app-key` | speedtest-tracker-secrets | speedtest-tracker | Laravel APP_KEY |
+| `homelab/pgadmin/*` | pgadmin-credentials | pgadmin | Default admin email and password |
+| `homelab/teamspeak/duckdns-*` | duckdns-token | teamspeak | DuckDNS DDNS token and domain |
+| `homelab/corpocache/*` | corpocache-secret | corpocache | PostgreSQL connection details |
+| `homelab/workout-tracker/*` | workout-tracker-secrets | workout-tracker | PostgreSQL URL, JWT secrets |
+
+### Recreating a K8s Secret from pass
+
+```bash
+# Example: recreate linkwarden-secrets
+kubectl create secret generic linkwarden-secrets -n linkwarden \
+  --from-literal=NEXTAUTH_SECRET="$(pass homelab/linkwarden/nextauth-secret)" \
+  --from-literal=NEXTAUTH_URL="https://linkwarden.home.lab/api/v1/auth" \
+  --from-literal=DATABASE_URL="$(pass homelab/linkwarden/database-url)" \
+  --from-literal=MEILI_MASTER_KEY="$(pass homelab/linkwarden/meili-master-key)"
+```
 
 ## Documentation
 
