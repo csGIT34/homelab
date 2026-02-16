@@ -27,7 +27,13 @@ spec:
                 echo "Waiting for DinD to be ready..."
                 sleep 2
               done
-              forgejo-runner create-runner-file --instance http://forgejo-http.forgejo.svc.cluster.local:3000 --secret $(cat /secret/token)
+              if [ ! -f /data/.runner ]; then
+                forgejo-runner register --no-interactive \
+                  --instance http://forgejo-http.forgejo.svc.cluster.local:3000 \
+                  --token $(cat /secret/token) \
+                  --name k8s-runner \
+                  --labels "ubuntu-latest:docker://node:20-bookworm,docker:docker://docker:27"
+              fi
               forgejo-runner daemon --config /config/config.yml
           env:
             - name: DOCKER_HOST
