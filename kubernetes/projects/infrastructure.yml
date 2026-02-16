@@ -16,7 +16,7 @@ spec:
     - https://traefik.github.io/charts
     - https://charts.jetstack.io
     - https://prometheus-community.github.io/helm-charts
-    - https://charts.bitnami.com/bitnami
+    - registry-1.docker.io/bitnamicharts
     - https://helm.goharbor.io
   destinations:
     - namespace: argocd
