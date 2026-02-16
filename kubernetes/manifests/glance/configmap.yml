@@ -947,15 +947,6 @@ data:
                     </div>
                   </div>
 
-              - type: bookmarks
-                title: Other Services
-                groups:
-                  - title: Voice
-                    links:
-                      - title: TeamSpeak
-                        url: ts3server://ts.home.lab
-                        icon: si:teamspeak
-
       - name: Startpage
         width: slim
         center-vertically: true

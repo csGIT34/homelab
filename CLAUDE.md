@@ -299,7 +299,6 @@ echo 'value' | pass insert -e homelab/<app>/<key-name>
 | `homelab/unifi/unpoller-*` | unpoller-credentials | monitoring | UnPoller read-only user credentials |
 | `homelab/speedtest-tracker/app-key` | speedtest-tracker-secrets | speedtest-tracker | Laravel APP_KEY |
 | `homelab/pgadmin/*` | pgadmin-credentials | pgadmin | Default admin email and password |
-| `homelab/teamspeak/duckdns-*` | duckdns-token | teamspeak | DuckDNS DDNS token and domain |
 | `homelab/corpocache/*` | corpocache-secret | corpocache | PostgreSQL connection details |
 | `homelab/workout-tracker/*` | workout-tracker-secrets | workout-tracker | PostgreSQL URL, JWT secrets |
 
