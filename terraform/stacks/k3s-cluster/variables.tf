@@ -54,7 +54,7 @@ variable "server_cores" {
 variable "server_memory" {
   type        = number
   description = "Memory in MB for server nodes"
-  default     = 4096
+  default     = 8192
 }
 
 variable "server_disk_size" {

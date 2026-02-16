@@ -9,7 +9,7 @@ server_count = 1
 agent_count  = 3
 
 server_cores     = 4
-server_memory    = 4096
+server_memory    = 8192
 server_disk_size = 50
 
 agent_cores     = 4
