@@ -44,7 +44,7 @@ spec:
             actions:
               ENABLED: "true"
             service:
-              DISABLE_REGISTRATION: "false"
+              DISABLE_REGISTRATION: "true"
           additionalConfigFromEnvs:
             - name: FORGEJO__DATABASE__PASSWD
               valueFrom:
