@@ -35,10 +35,12 @@ homelab/
 │   │   ├── speedtest-tracker/
 │   │   ├── traefik/
 │   │   ├── workout-tracker/
-│   │   └── forgejo/              # Forgejo server + runner
+│   │   ├── forgejo/              # Forgejo server + runner
+│   │   └── litellm/             # LiteLLM API gateway
 │   └── manifests/
 │       ├── ingress/              # Traefik Ingress resources for infra services
-│       └── forgejo-runner/       # Forgejo Actions runner + DinD sidecar
+│       ├── forgejo-runner/       # Forgejo Actions runner + DinD sidecar
+│       └── litellm/             # LiteLLM proxy (ConfigMap, Deployment, Service, Ingress)
 └── docs/                         # Network design, Unifi setup, AD migration
 ```
 
@@ -52,6 +54,7 @@ homelab/
 | k3s-agent-03 | 10.0.20.23 | Worker |
 | postgres-01 | 10.0.30.10 | External PostgreSQL (VLAN 30) |
 | ollama-01 | 10.0.20.30 | Ollama inference server (GPU passthrough, VLAN 20) |
+| workstation | 10.0.10.40 | Workstation Ollama (RTX 5090, VLAN 10) |
 
 ### Key IPs
 
@@ -60,7 +63,9 @@ homelab/
 | Traefik LB | 10.0.20.80 | `*.home.lab` ingress |
 | CoreDNS LB | 10.0.20.53 | Internal DNS |
 | PostgreSQL | 10.0.30.10 | `postgres.home.lab` |
-| Ollama | 10.0.20.30 | `ollama.home.lab` |
+| Ollama (VM) | 10.0.20.30 | `ollama.home.lab` |
+| Ollama (Workstation) | 10.0.10.40 | `desktop.home.lab` |
+| LiteLLM | 10.0.20.80 | `llm.home.lab` (via Traefik) |
 | Forgejo SSH | 10.0.20.81 | `git.home.lab` (SSH) |
 
 ### Kubeconfig
@@ -213,6 +218,8 @@ spec:
 | Workout Tracker | workout-tracker | Forgejo csGIT34/workouttracker (k8s/) | https://workout.home.lab |
 | CorpoCache | corpocache | Forgejo csGIT34/CorpoCache (helm/) | https://cache.home.lab |
 | Speedtest Tracker | speedtest-tracker | homelab (kubernetes/manifests/speedtest-tracker/) | https://speedtest.home.lab |
+| LiteLLM | litellm | homelab (kubernetes/manifests/litellm/) | https://llm.home.lab |
+| Open WebUI | open-webui | homelab (kubernetes/manifests/open-webui/) | https://chat.home.lab |
 
 ## External PostgreSQL
 
@@ -309,6 +316,9 @@ echo 'value' | pass insert -e homelab/<app>/<key-name>
 | `homelab/forgejo/*` | forgejo-db-secret, forgejo-app-secrets, forgejo-admin-secret | forgejo | DB password, secret key, internal token, JWT secrets, admin credentials |
 | `homelab/forgejo/runner-registration-token` | forgejo-runner-secret | forgejo | Forgejo Actions runner registration token |
 | `homelab/forgejo/harbor-robot-secret` | forgejo-runner-harbor-secret | forgejo | Harbor robot account for CI image push |
+| `homelab/litellm/master-key` | litellm-secrets | litellm | LiteLLM master key (API auth + UI login) |
+| `homelab/litellm/db-password` | litellm-secrets | litellm | LiteLLM PostgreSQL password |
+| `homelab/litellm/master-key` | litellm-api-key | open-webui | Same key, used by Open WebUI to call LiteLLM |
 
 ### Recreating a K8s Secret from pass
 
@@ -320,6 +330,45 @@ kubectl create secret generic linkwarden-secrets -n linkwarden \
   --from-literal=DATABASE_URL="$(pass homelab/linkwarden/database-url)" \
   --from-literal=MEILI_MASTER_KEY="$(pass homelab/linkwarden/meili-master-key)"
 ```
+
+## LiteLLM (Multi-GPU API Gateway)
+
+LiteLLM runs as an OpenAI-compatible proxy in k8s, aggregating both Ollama backends behind a single endpoint at `https://llm.home.lab`.
+
+### Backends
+
+| Backend | GPU | IP | Prefix |
+|---------|-----|-----|--------|
+| Proxmox VM (ollama-01) | RTX 3090 (24GB) | 10.0.20.30:11434 | `vm/` |
+| Workstation | RTX 5090 (32GB) | 10.0.10.40:11434 | `ws/` |
+
+### Model Routing
+
+- **`vm/<model>`** — routes to the Proxmox VM (RTX 3090)
+- **`ws/<model>`** — routes to the workstation (RTX 5090)
+- **`ollama/<model>`** — load-balanced across whichever backend has the model
+
+Models are listed explicitly per backend in `kubernetes/manifests/litellm/configmap.yml`. When pulling a new model on either Ollama instance, add a corresponding entry to the ConfigMap.
+
+### Authentication
+
+All API requests require `Authorization: Bearer <master-key>`. The master key is stored in:
+- `pass homelab/litellm/master-key`
+- K8s Secret `litellm-secrets` in namespace `litellm` (env var `LITELLM_MASTER_KEY`)
+
+The LiteLLM admin UI is at `https://llm.home.lab/ui` (login with the master key).
+
+### Open WebUI Integration
+
+Open WebUI connects to LiteLLM via env vars in `kubernetes/manifests/open-webui/deployment.yml`:
+- `OPENAI_API_BASE_URLS` → `http://litellm.litellm.svc.cluster.local:4000/v1`
+- `OPENAI_API_KEYS` → from Secret `litellm-api-key` in `open-webui` namespace
+
+### Network Requirements
+
+- **USG firewall rule**: VLAN 20 (10.0.20.0/24) → 10.0.10.40:11434 (TCP) — allows k8s pods to reach workstation Ollama
+- **Workstation UFW rule**: `ufw allow from 10.0.20.0/24 to any port 11434 proto tcp`
+- Workstation Ollama binds `0.0.0.0` via systemd override at `/etc/systemd/system/ollama.service.d/override.conf`
 
 ## Forgejo CI/CD
 
