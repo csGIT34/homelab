@@ -51,9 +51,26 @@ spec:
                 secretKeyRef:
                   name: forgejo-db-secret
                   key: password
-          additionalConfigSources:
-            - secret:
-                secretName: forgejo-app-secrets
+            - name: FORGEJO__SECURITY__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-app-secrets
+                  key: secret-key
+            - name: FORGEJO__SECURITY__INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-app-secrets
+                  key: internal-token
+            - name: FORGEJO__SERVER__LFS_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-app-secrets
+                  key: lfs-jwt-secret
+            - name: FORGEJO__OAUTH2__JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-app-secrets
+                  key: oauth2-jwt-secret
         redis:
           enabled: false
         redis-cluster:
