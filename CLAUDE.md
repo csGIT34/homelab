@@ -125,7 +125,7 @@ kubectl apply -f kubernetes/projects/infrastructure.yml
    spec:
      project: applications  # or infrastructure
      source:
-       repoURL: https://github.com/csGIT34/<repo>.git
+       repoURL: https://git.home.lab/csGIT34/<repo>.git
        targetRevision: main  # or master
        path: k8s/            # path to manifests in the source repo
      destination:
@@ -143,8 +143,7 @@ kubectl apply -f kubernetes/projects/infrastructure.yml
    Edit `kubernetes/projects/applications.yml`:
    ```yaml
    sourceRepos:
-     - https://github.com/csGIT34/homelab.git
-     - https://github.com/csGIT34/<new-repo>.git
+     - https://git.home.lab/csGIT34/<new-repo>.git
    ```
    Then apply manually: `kubectl apply -f kubernetes/projects/applications.yml`
 
@@ -212,6 +211,7 @@ spec:
 |-----|-----------|-------------|--------|
 | Linkwarden | linkwarden | homelab (kubernetes/manifests/linkwarden/) | https://linkwarden.home.lab |
 | Workout Tracker | workout-tracker | Forgejo csGIT34/workouttracker (k8s/) | https://workout.home.lab |
+| CorpoCache | corpocache | Forgejo csGIT34/CorpoCache (helm/) | https://cache.home.lab |
 | Speedtest Tracker | speedtest-tracker | homelab (kubernetes/manifests/speedtest-tracker/) | https://speedtest.home.lab |
 
 ## External PostgreSQL
@@ -255,7 +255,7 @@ docker push <registry>/<image>:latest
 kubectl rollout restart deployment/<name> -n <namespace>
 ```
 
-For proper GitOps, apps should have a CI pipeline (GitHub Actions) that builds images on push. See the workout tracker repo for an example.
+For proper GitOps, apps should have a Forgejo Actions CI pipeline that builds images on push and pushes to Harbor. See the Forgejo CI/CD section below.
 
 ### Checking ArgoCD Status
 
@@ -319,6 +319,109 @@ kubectl create secret generic linkwarden-secrets -n linkwarden \
   --from-literal=NEXTAUTH_URL="https://linkwarden.home.lab/api/v1/auth" \
   --from-literal=DATABASE_URL="$(pass homelab/linkwarden/database-url)" \
   --from-literal=MEILI_MASTER_KEY="$(pass homelab/linkwarden/meili-master-key)"
+```
+
+## Forgejo CI/CD
+
+### Architecture
+
+Forgejo (`git.home.lab`) is the primary git remote for application repos. It provides GitHub Actions-compatible CI via Forgejo Actions.
+
+```
+Developer pushes to Forgejo (git@git.home.lab)
+  → Forgejo Actions triggers CI workflow
+    → Runner builds Docker image (DinD sidecar)
+    → Pushes to Harbor (registry.home.lab)
+  → Forgejo push-mirrors to GitHub (backup)
+  → ArgoCD watches Forgejo repo for k8s manifest changes → deploys
+```
+
+**Components:**
+- **Forgejo server** — Helm chart via ArgoCD (`kubernetes/apps/forgejo/forgejo.yml`), external PG + Redis, Traefik ingress (HTTP+HTTPS), SSH via MetalLB LoadBalancer at `10.0.20.81`
+- **Forgejo runner** — Raw k8s manifests (`kubernetes/manifests/forgejo-runner/`), DinD sidecar (privileged) for Docker builds
+- **Harbor** — Container registry at `registry.home.lab`, robot account `robot$forgejo-ci` for CI push access
+
+### Runner Configuration
+
+The runner uses Docker-in-Docker (DinD) to build images inside CI jobs:
+
+- **Runner image**: `code.forgejo.org/forgejo/runner:6.3.1`
+- **DinD image**: `docker:27-dind` with `--insecure-registry=registry.home.lab`
+- **Instance URL**: `http://git.home.lab` (HTTP, not HTTPS — runner runs as non-root, can't install CA certs)
+- **Job container DNS**: `--dns 10.0.20.53` (external CoreDNS, resolves `git.home.lab` and `registry.home.lab`)
+- **Docker socket**: Mounted into job containers via `-v /var/run/docker.sock:/var/run/docker.sock`
+- **Labels**: `ubuntu-latest` → `node:20-bookworm`, `docker` → `docker:27`
+
+Config files:
+- `kubernetes/manifests/forgejo-runner/deployment.yml` — Runner + DinD sidecar Deployment
+- `kubernetes/manifests/forgejo-runner/configmap.yml` — Runner config (labels, capacity, DNS, container options)
+- `kubernetes/manifests/forgejo-runner/ca-configmap.yml` — Home Lab root CA cert for DinD
+
+### CI Workflow Pattern
+
+Each app repo has `.forgejo/workflows/ci.yml`:
+
+```yaml
+name: Build and Push
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "k8s/**"
+      - "*.md"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Docker CLI
+        run: |
+          apt-get update && apt-get install -y docker.io
+      - name: Login to Harbor
+        env:
+          HARBOR_USER: ${{ secrets.HARBOR_USERNAME }}
+          HARBOR_PASS: ${{ secrets.HARBOR_PASSWORD }}
+        run: echo "$HARBOR_PASS" | docker login registry.home.lab -u "$HARBOR_USER" --password-stdin
+      - name: Build and push
+        run: |
+          docker build -t registry.home.lab/csgit34/<image>:${{ github.sha }} -t registry.home.lab/csgit34/<image>:latest .
+          docker push registry.home.lab/csgit34/<image>:${{ github.sha }}
+          docker push registry.home.lab/csgit34/<image>:latest
+```
+
+**Important:** Harbor credentials MUST use `env:` vars (not inline `${{ secrets.* }}`). The `$` in `robot$forgejo-ci` gets interpreted by bash if placed directly in double-quoted strings.
+
+### Adding CI to a New Repo
+
+1. **Create Harbor project** (if needed) for the image namespace
+2. **Add Forgejo repo secrets** (Settings → Actions → Secrets):
+   - `HARBOR_USERNAME`: `robot$forgejo-ci`
+   - `HARBOR_PASSWORD`: value from `pass homelab/forgejo/harbor-robot-secret`
+3. **Create workflow** at `.forgejo/workflows/ci.yml` following the pattern above
+4. **Push to Forgejo** — CI triggers automatically
+
+### Push Mirroring
+
+Repos on Forgejo are push-mirrored to GitHub as backup (sync-on-commit + 8h interval). Configure via Forgejo UI: **Repo Settings → Repository → Mirror Settings → Add Push Mirror**.
+
+GitHub PAT stored at `pass homelab/forgejo/github-mirror-pat` (needs `repo` scope).
+
+### Git Remotes
+
+Local repos use Forgejo as `origin` and GitHub as `github`:
+
+```bash
+git remote -v
+# origin   git@git.home.lab:csGIT34/<repo>.git (Forgejo, primary)
+# github   git@github.com:csGIT34/<repo>.git (GitHub, backup)
+```
+
+SSH config for Forgejo (`~/.ssh/config`):
+```
+Host git.home.lab
+  HostName 10.0.20.81
+  User git
 ```
 
 ## Documentation
