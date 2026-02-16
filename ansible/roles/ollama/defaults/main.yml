@@ -4,3 +4,5 @@ ollama_port: 11434
 nvidia_driver_version: 550
 ollama_models:
   - llama3.2
+  - qwen2.5-coder:32b
+  - deepseek-r1:32b
