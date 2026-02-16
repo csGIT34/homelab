@@ -7,7 +7,7 @@ metadata:
 data:
   config.yml: |
     log:
-      level: debug
+      level: info
 
     runner:
       file: /data/.runner
