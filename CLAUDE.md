@@ -29,7 +29,6 @@ homelab/
 │   ├── apps/                     # ArgoCD Applications (auto-synced by root-app)
 │   │   ├── cert-manager/
 │   │   ├── coredns/
-│   │   ├── linkerd/
 │   │   ├── linkwarden/
 │   │   ├── metallb/
 │   │   ├── monitoring/
@@ -201,7 +200,6 @@ spec:
 | CoreDNS | coredns | Helm | LB at 10.0.20.53 |
 | cert-manager | cert-manager | Helm | Internal CA (`home-lab-ca`) |
 | MetalLB | metallb-system | Helm | IP pool: `k8s-vlan-pool` |
-| Linkerd | linkerd | Helm | https://linkerd.home.lab |
 | Prometheus + Grafana | monitoring | Helm | https://grafana.home.lab |
 
 ### Application Workloads

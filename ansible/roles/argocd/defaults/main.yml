@@ -5,19 +5,9 @@ argocd_chart_version: "9.4.1"
 argocd_chart_repo: https://argoproj.github.io/argo-helm
 argocd_nodeport: 30443
 
-# Linkerd
-linkerd_namespace: linkerd
-linkerd_viz_namespace: linkerd-viz
-
 # Git repo for ArgoCD
 argocd_repo_url: https://github.com/csGIT34/homelab.git
 argocd_repo_branch: main
-
-# Linkerd cert paths (passed as extra vars)
-# linkerd_trust_anchor_cert_path: roles/argocd/files/ca.crt
-# linkerd_trust_anchor_key_path: roles/argocd/files/ca.key
-# linkerd_issuer_cert_path: roles/argocd/files/issuer.crt
-# linkerd_issuer_key_path: roles/argocd/files/issuer.key
 
 # Kubeconfig
 kubeconfig_path: "{{ playbook_dir }}/../kubeconfig"

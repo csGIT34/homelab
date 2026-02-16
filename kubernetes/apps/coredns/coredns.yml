@@ -63,7 +63,6 @@ spec:
               k3s-agent-03      IN  A    10.0.20.23
               postgres          IN  A    10.0.30.10
               argocd            IN  A    10.0.20.80
-              linkerd           IN  A    10.0.20.80
               traefik           IN  A    10.0.20.80
               grafana           IN  A    10.0.20.80
               workout           IN  A    10.0.20.80

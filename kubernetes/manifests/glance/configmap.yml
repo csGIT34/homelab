@@ -425,10 +425,6 @@ data:
                     url: https://grafana.home.lab
                     icon: si:grafana
                     allow-insecure: true
-                  - title: Linkerd
-                    url: https://linkerd.home.lab
-                    icon: si:linkerd
-                    allow-insecure: true
                   - title: Jellyfin
                     url: https://jellyfin.home.lab
                     icon: si:jellyfin
