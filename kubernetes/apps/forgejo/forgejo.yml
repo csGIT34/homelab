@@ -1,0 +1,102 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: infrastructure
+  source:
+    repoURL: https://code.forgejo.org/api/packages/forgejo-helm/helm
+    chart: forgejo
+    targetRevision: "12.*"
+    helm:
+      valuesObject:
+        gitea:
+          admin:
+            existingSecret: forgejo-admin-secret
+          config:
+            server:
+              DOMAIN: git.home.lab
+              ROOT_URL: https://git.home.lab/
+              PROTOCOL: http
+              SSH_DOMAIN: git.home.lab
+              SSH_PORT: 22
+              SSH_LISTEN_PORT: 22
+            database:
+              DB_TYPE: postgres
+              HOST: 10.0.30.10:5432
+              NAME: forgejo
+              USER: forgejo
+              SCHEMA: public
+              SSL_MODE: disable
+            cache:
+              ADAPTER: redis
+              HOST: redis://redis-master.redis.svc.cluster.local:6379/0
+            session:
+              PROVIDER: redis
+              PROVIDER_CONFIG: redis://redis-master.redis.svc.cluster.local:6379/1
+            queue:
+              TYPE: redis
+              CONN_STR: redis://redis-master.redis.svc.cluster.local:6379/2
+            actions:
+              ENABLED: "true"
+            service:
+              DISABLE_REGISTRATION: "false"
+          additionalConfigFromEnvs:
+            - name: FORGEJO__DATABASE__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-db-secret
+                  key: password
+          additionalConfigSources:
+            - secret:
+                secretName: forgejo-app-secrets
+        redis:
+          enabled: false
+        redis-cluster:
+          enabled: false
+        postgresql:
+          enabled: false
+        postgresql-ha:
+          enabled: false
+        persistence:
+          enabled: true
+          storageClass: local-path
+          size: 10Gi
+        service:
+          http:
+            type: ClusterIP
+            port: 3000
+          ssh:
+            type: LoadBalancer
+            port: 22
+            loadBalancerIP: "10.0.20.81"
+            annotations:
+              metallb.universe.tf/address-pool: k8s-vlan-pool
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: home-lab-ca
+            traefik.ingress.kubernetes.io/router.entrypoints: websecure
+          hosts:
+            - host: git.home.lab
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: forgejo-tls
+              hosts:
+                - git.home.lab
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: forgejo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

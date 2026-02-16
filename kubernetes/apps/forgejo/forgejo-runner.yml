@@ -2,21 +2,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: corpocache
+  name: forgejo-runner
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: applications
+  project: infrastructure
   source:
-    repoURL: https://git.home.lab/csGIT34/CorpoCache.git
+    repoURL: https://github.com/csGIT34/homelab.git
     targetRevision: main
-    path: helm/corpocache
-    helm:
-      valuesObject: {}
+    path: kubernetes/manifests/forgejo-runner
   destination:
     server: https://kubernetes.default.svc
-    namespace: corpocache
+    namespace: forgejo
   syncPolicy:
     automated:
       prune: true

@@ -34,9 +34,11 @@ homelab/
 │   │   ├── monitoring/
 │   │   ├── speedtest-tracker/
 │   │   ├── traefik/
-│   │   └── workout-tracker/
+│   │   ├── workout-tracker/
+│   │   └── forgejo/              # Forgejo server + runner
 │   └── manifests/
-│       └── ingress/              # Traefik Ingress resources for infra services
+│       ├── ingress/              # Traefik Ingress resources for infra services
+│       └── forgejo-runner/       # Forgejo Actions runner + DinD sidecar
 └── docs/                         # Network design, Unifi setup, AD migration
 ```
 
@@ -59,6 +61,7 @@ homelab/
 | CoreDNS LB | 10.0.20.53 | Internal DNS |
 | PostgreSQL | 10.0.30.10 | `postgres.home.lab` |
 | Ollama | 10.0.20.30 | `ollama.home.lab` |
+| Forgejo SSH | 10.0.20.81 | `git.home.lab` (SSH) |
 
 ### Kubeconfig
 
@@ -201,13 +204,14 @@ spec:
 | cert-manager | cert-manager | Helm | Internal CA (`home-lab-ca`) |
 | MetalLB | metallb-system | Helm | IP pool: `k8s-vlan-pool` |
 | Prometheus + Grafana | monitoring | Helm | https://grafana.home.lab |
+| Forgejo | forgejo | Helm (forgejo-helm) | https://git.home.lab |
 
 ### Application Workloads
 
 | App | Namespace | Source Repo | Access |
 |-----|-----------|-------------|--------|
 | Linkwarden | linkwarden | homelab (kubernetes/manifests/linkwarden/) | https://linkwarden.home.lab |
-| Workout Tracker | workout-tracker | csGIT34/workouttracker (k8s/) | https://workout.home.lab |
+| Workout Tracker | workout-tracker | Forgejo csGIT34/workouttracker (k8s/) | https://workout.home.lab |
 | Speedtest Tracker | speedtest-tracker | homelab (kubernetes/manifests/speedtest-tracker/) | https://speedtest.home.lab |
 
 ## External PostgreSQL
@@ -302,6 +306,9 @@ echo 'value' | pass insert -e homelab/<app>/<key-name>
 | `homelab/pgadmin/*` | pgadmin-credentials | pgadmin | Default admin email and password |
 | `homelab/corpocache/*` | corpocache-secret | corpocache | PostgreSQL connection details |
 | `homelab/workout-tracker/*` | workout-tracker-secrets | workout-tracker | PostgreSQL URL, JWT secrets |
+| `homelab/forgejo/*` | forgejo-db-secret, forgejo-app-secrets, forgejo-admin-secret | forgejo | DB password, secret key, internal token, JWT secrets, admin credentials |
+| `homelab/forgejo/runner-registration-token` | forgejo-runner-secret | forgejo | Forgejo Actions runner registration token |
+| `homelab/forgejo/harbor-robot-secret` | forgejo-runner-harbor-secret | forgejo | Harbor robot account for CI image push |
 
 ### Recreating a K8s Secret from pass
 

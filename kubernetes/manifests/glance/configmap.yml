@@ -450,6 +450,10 @@ data:
                     url: https://chat.home.lab
                     icon: si:openai
                     allow-insecure: true
+                  - title: Forgejo
+                    url: https://git.home.lab
+                    icon: si:forgejo
+                    allow-insecure: true
                   - title: Harbor Registry
                     url: https://registry.home.lab
                     icon: si:harbor

@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-runner-ca
+  namespace: forgejo
+data:
+  home-lab-root-ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIBejCCASCgAwIBAgIUGrdlGKQJoQzY55rOYAXWFbODpaYwCgYIKoZIzj0EAwIw
+    GzEZMBcGA1UEAxMQaG9tZS5sYWIgUm9vdCBDQTAeFw0yNjAyMDkwMjUzNDZaFw0z
+    NjAyMDcwMjUzNDZaMBsxGTAXBgNVBAMTEGhvbWUubGFiIFJvb3QgQ0EwWTATBgcq
+    hkjOPQIBBggqhkjOPQMBBwNCAAQoByUzbo2S2EKig2peDLQ3GaEEz/fZ+28gE+Kw
+    xfp8iE8FLRfjXDpt+mz5cdNe6aUtRRMSnLNzR8kpkjSeYUQMo0IwQDAOBgNVHQ8B
+    Af8EBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUoG+6pt+3O/06nINO
+    Y4DsTxNiPKMwCgYIKoZIzj0EAwIDSAAwRQIhANw/B9zmJCpj3JOxUAIe+nT8KLzN
+    UJIpGa5u/MG3NoPcAiAA2ufgZI7173tfK5IxfnHE6M1HHjQ7oz2Bdq28ZrVUAw==
+    -----END CERTIFICATE-----
