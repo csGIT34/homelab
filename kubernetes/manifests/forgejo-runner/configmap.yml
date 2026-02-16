@@ -16,5 +16,5 @@ data:
 
     container:
       network: bridge
-      options: "--dns 10.43.0.10 --dns 10.0.20.53"
+      options: "--dns 10.0.20.53 -e GIT_SSL_NO_VERIFY=true"
       valid_volumes: []
