@@ -9,9 +9,9 @@ metadata:
 spec:
   project: infrastructure
   source:
-    repoURL: https://code.forgejo.org/api/packages/forgejo-helm/helm
-    chart: forgejo
-    targetRevision: "12.*"
+    repoURL: oci://code.forgejo.org/forgejo-helm/forgejo
+    path: .
+    targetRevision: "16.2.0"
     helm:
       valuesObject:
         gitea:
