@@ -450,6 +450,10 @@ data:
                     url: https://chat.home.lab
                     icon: si:openai
                     allow-insecure: true
+                  - title: LiteLLM
+                    url: https://llm.home.lab/ui
+                    icon: si:openai
+                    allow-insecure: true
                   - title: Forgejo
                     url: https://git.home.lab
                     icon: si:forgejo
