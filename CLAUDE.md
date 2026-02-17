@@ -36,11 +36,13 @@ homelab/
 │   │   ├── traefik/
 │   │   ├── workout-tracker/
 │   │   ├── forgejo/              # Forgejo server + runner
-│   │   └── litellm/             # LiteLLM API gateway
+│   │   ├── litellm/             # LiteLLM API gateway
+│   │   └── wireguard/           # WireGuard VPN (wg-easy)
 │   └── manifests/
 │       ├── ingress/              # Traefik Ingress resources for infra services
 │       ├── forgejo-runner/       # Forgejo Actions runner + DinD sidecar
-│       └── litellm/             # LiteLLM proxy (ConfigMap, Deployment, Service, Ingress)
+│       ├── litellm/             # LiteLLM proxy (ConfigMap, Deployment, Service, Ingress)
+│       └── wireguard/           # wg-easy + DuckDNS CronJob
 └── docs/                         # Network design, Unifi setup, AD migration
 ```
 
@@ -67,6 +69,7 @@ homelab/
 | Ollama (Workstation) | 10.0.10.40 | `desktop.home.lab` |
 | LiteLLM | 10.0.20.80 | `llm.home.lab` (via Traefik) |
 | Forgejo SSH | 10.0.20.81 | `git.home.lab` (SSH) |
+| WireGuard | 10.0.20.21 (hostNetwork) | `vpn.home.lab` (web UI) |
 
 ### Kubeconfig
 
@@ -220,6 +223,7 @@ spec:
 | Speedtest Tracker | speedtest-tracker | homelab (kubernetes/manifests/speedtest-tracker/) | https://speedtest.home.lab |
 | LiteLLM | litellm | homelab (kubernetes/manifests/litellm/) | https://llm.home.lab |
 | Open WebUI | open-webui | homelab (kubernetes/manifests/open-webui/) | https://chat.home.lab |
+| WireGuard | wireguard | homelab (kubernetes/manifests/wireguard/) | https://vpn.home.lab |
 
 ## External PostgreSQL
 
@@ -319,6 +323,10 @@ echo 'value' | pass insert -e homelab/<app>/<key-name>
 | `homelab/litellm/master-key` | litellm-secrets | litellm | LiteLLM master key (API auth + UI login) |
 | `homelab/litellm/db-password` | litellm-secrets | litellm | LiteLLM PostgreSQL password |
 | `homelab/litellm/master-key` | litellm-api-key | open-webui | Same key, used by Open WebUI to call LiteLLM |
+| `homelab/wireguard/password-hash` | wireguard-secrets | wireguard | Bcrypt hash for wg-easy web UI login |
+| `homelab/wireguard/wg-host` | wireguard-secrets | wireguard | DuckDNS hostname (`malliefivpn.duckdns.org`) |
+| `homelab/wireguard/duckdns-token` | duckdns-secrets | wireguard | DuckDNS API token |
+| `homelab/wireguard/duckdns-subdomain` | duckdns-secrets | wireguard | DuckDNS subdomain (`malliefivpn`) |
 
 ### Recreating a K8s Secret from pass
 
@@ -472,6 +480,75 @@ Host git.home.lab
   HostName 10.0.20.81
   User git
 ```
+
+## WireGuard VPN (Remote Access)
+
+WireGuard provides remote access to all homelab VLANs via `wg-easy` (WireGuard + web UI) running on k3s.
+
+### Architecture
+
+```
+Internet → USG port forward (UDP 443) → k3s-agent-01:443 (hostNetwork) → wg-easy pod
+VPN client → wg0 tunnel → pod masquerade → k3s node → USG → all VLANs
+Web UI: https://vpn.home.lab (Traefik ingress, internal only)
+```
+
+### Key Details
+
+| Setting | Value |
+|---------|-------|
+| External endpoint | `malliefivpn.duckdns.org:443` (UDP) |
+| VPN subnet | `10.8.0.0/24` |
+| Allowed IPs | `10.0.0.0/16` (all homelab traffic) |
+| Client DNS | `10.0.20.53` (CoreDNS) |
+| Pod runs on | k3s-agent-01 (`10.0.20.21`) via hostNetwork |
+| Web UI | `https://vpn.home.lab` |
+| DDNS | DuckDNS CronJob (every 5 min) |
+
+### Important Design Decisions
+
+- **`hostNetwork: true`** — Required so masqueraded VPN traffic uses the node's real IP (`10.0.20.21`). Without this, masquerade uses the pod IP (`10.42.x.x`) which isn't routable outside the cluster.
+- **UDP port 443** — Standard WireGuard port 51820 is blocked by many mobile carriers and corporate firewalls. UDP 443 (used by QUIC/HTTP3) is never blocked.
+- **Privileged init container** — k3s forbids unsafe sysctls in pod spec. An init container with `privileged: true` runs `sysctl -w net.ipv4.ip_forward=1` instead.
+- **Secrets NOT in git** — `wireguard-secrets` and `duckdns-secrets` are created manually via `kubectl`, not managed by ArgoCD (to avoid self-heal overwriting with placeholder values).
+
+### USG Port Forward
+
+- Name: `WireGuard VPN`
+- From: Anywhere
+- Port: 443 (UDP)
+- Forward IP: `10.0.20.21`
+- Forward Port: 443
+- Protocol: UDP
+
+### Managing Clients
+
+1. Access `https://vpn.home.lab` and log in
+2. Click **+ New** to create a client
+3. Scan QR code (mobile) or download `.conf` file (desktop)
+4. Install WireGuard app and import the config
+
+### Recreating K8s Secrets
+
+```bash
+kubectl create secret generic wireguard-secrets -n wireguard \
+  --from-literal=PASSWORD_HASH="$(pass homelab/wireguard/password-hash)" \
+  --from-literal=WG_HOST="$(pass homelab/wireguard/wg-host)"
+
+kubectl create secret generic duckdns-secrets -n wireguard \
+  --from-literal=token="$(pass homelab/wireguard/duckdns-token)" \
+  --from-literal=subdomain="$(pass homelab/wireguard/duckdns-subdomain)"
+```
+
+### Manifest Files
+
+- `kubernetes/manifests/wireguard/deployment.yml` — wg-easy pod (hostNetwork, init container, capabilities)
+- `kubernetes/manifests/wireguard/service.yml` — LoadBalancer UDP 443 at 10.0.20.82
+- `kubernetes/manifests/wireguard/service-ui.yml` — ClusterIP for web UI (port 51821)
+- `kubernetes/manifests/wireguard/ingress.yml` — Traefik ingress at `vpn.home.lab`
+- `kubernetes/manifests/wireguard/pvc.yml` — 100Mi for WireGuard config persistence
+- `kubernetes/manifests/wireguard/cronjob.yml` — DuckDNS IP updater (every 5 min)
+- `kubernetes/apps/wireguard/wireguard.yml` — ArgoCD Application
 
 ## Documentation
 
