@@ -49,14 +49,47 @@ data:
         litellm_params:
           model: "ollama/deepseek-r1:32b"
           api_base: "http://10.0.10.40:11434"
-      # Load-balanced — routes to whichever backend has the model
-      - model_name: "ollama/*"
+      # Load-balanced — same model_name with multiple backends for round-robin
+      - model_name: "ollama/gemma3:27b"
         litellm_params:
-          model: "ollama/*"
+          model: "ollama/gemma3:27b"
           api_base: "http://10.0.20.30:11434"
-      - model_name: "ollama/*"
+      - model_name: "ollama/gemma3:27b"
         litellm_params:
-          model: "ollama/*"
+          model: "ollama/gemma3:27b"
+          api_base: "http://10.0.10.40:11434"
+      - model_name: "ollama/qwen2.5-coder:32b"
+        litellm_params:
+          model: "ollama/qwen2.5-coder:32b"
+          api_base: "http://10.0.20.30:11434"
+      - model_name: "ollama/qwen2.5-coder:32b"
+        litellm_params:
+          model: "ollama/qwen2.5-coder:32b"
+          api_base: "http://10.0.10.40:11434"
+      - model_name: "ollama/deepseek-r1:32b"
+        litellm_params:
+          model: "ollama/deepseek-r1:32b"
+          api_base: "http://10.0.20.30:11434"
+      - model_name: "ollama/deepseek-r1:32b"
+        litellm_params:
+          model: "ollama/deepseek-r1:32b"
+          api_base: "http://10.0.10.40:11434"
+      # Single-backend models (no load balancing peer)
+      - model_name: "ollama/mistral-small:24b"
+        litellm_params:
+          model: "ollama/mistral-small:24b"
+          api_base: "http://10.0.20.30:11434"
+      - model_name: "ollama/phi4:14b"
+        litellm_params:
+          model: "ollama/phi4:14b"
+          api_base: "http://10.0.20.30:11434"
+      - model_name: "ollama/llama3.2:latest"
+        litellm_params:
+          model: "ollama/llama3.2:latest"
+          api_base: "http://10.0.20.30:11434"
+      - model_name: "ollama/qwen3:32b"
+        litellm_params:
+          model: "ollama/qwen3:32b"
           api_base: "http://10.0.10.40:11434"
 
     general_settings:
