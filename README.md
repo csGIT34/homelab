@@ -86,6 +86,7 @@ ArgoCD manages all workloads via an app-of-apps pattern. Infrastructure services
 | Workout Tracker | [workout.home.lab](https://workout.home.lab) | Exercise tracking app |
 | CorpoCache | [cache.home.lab](https://cache.home.lab) | Corporate cache tool |
 | Redis | internal | Shared key-value store |
+| WireGuard | [vpn.home.lab](https://vpn.home.lab) | Remote access VPN (wg-easy) |
 
 ## AI / LLM Infrastructure
 
@@ -115,6 +116,22 @@ Two Ollama backends are aggregated behind LiteLLM for unified model access:
 - **`vm/<model>`** — routes to RTX 3090 (Proxmox VM)
 - **`ws/<model>`** — routes to RTX 5090 (Workstation)
 - **`ollama/<model>`** — load-balanced across both
+
+## Remote Access (WireGuard VPN)
+
+WireGuard VPN via [wg-easy](https://github.com/wg-easy/wg-easy) provides remote access to all homelab VLANs.
+
+```
+Phone/Laptop → malliefivpn.duckdns.org:443 (UDP)
+  → USG port forward → k3s-agent-01 (hostNetwork)
+  → wg0 tunnel → masquerade → all VLANs (10.0.0.0/16)
+```
+
+- **VPN subnet:** 10.8.0.0/24
+- **Client DNS:** 10.0.20.53 (CoreDNS — resolves `*.home.lab`)
+- **DDNS:** DuckDNS CronJob updates public IP every 5 min
+- **Web UI:** [vpn.home.lab](https://vpn.home.lab) (manage clients, internal only)
+- **Port:** UDP 443 (avoids carrier/corporate port blocking)
 
 ## CI/CD Pipeline
 
