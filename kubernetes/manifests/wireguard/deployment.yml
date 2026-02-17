@@ -34,7 +34,7 @@ spec:
           image: ghcr.io/wg-easy/wg-easy:latest
           ports:
             - name: wireguard
-              containerPort: 51820
+              containerPort: 443
               protocol: UDP
             - name: web-ui
               containerPort: 51821
@@ -51,7 +51,7 @@ spec:
                   name: wireguard-secrets
                   key: WG_HOST
             - name: WG_PORT
-              value: "51820"
+              value: "443"
             - name: WG_DEFAULT_DNS
               value: "10.0.20.53"
             - name: WG_ALLOWED_IPS

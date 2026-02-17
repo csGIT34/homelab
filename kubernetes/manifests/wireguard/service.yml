@@ -13,6 +13,6 @@ spec:
     app: wg-easy
   ports:
     - name: wireguard
-      port: 51820
-      targetPort: 51820
+      port: 443
+      targetPort: 443
       protocol: UDP
