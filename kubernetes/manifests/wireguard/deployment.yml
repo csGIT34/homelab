@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wg-easy
+  namespace: wireguard
+  labels:
+    app: wg-easy
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: wg-easy
+  template:
+    metadata:
+      labels:
+        app: wg-easy
+    spec:
+      containers:
+        - name: wg-easy
+          image: ghcr.io/wg-easy/wg-easy:latest
+          ports:
+            - name: wireguard
+              containerPort: 51820
+              protocol: UDP
+            - name: web-ui
+              containerPort: 51821
+              protocol: TCP
+          env:
+            - name: PASSWORD_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: wireguard-secrets
+                  key: PASSWORD_HASH
+            - name: WG_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: wireguard-secrets
+                  key: WG_HOST
+            - name: WG_PORT
+              value: "51820"
+            - name: WG_DEFAULT_DNS
+              value: "10.0.20.53"
+            - name: WG_ALLOWED_IPS
+              value: "10.0.0.0/16"
+            - name: WG_DEFAULT_ADDRESS
+              value: "10.8.0.x"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/wireguard
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: wireguard-config
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ip_forward
+            value: "1"
+          - name: net.ipv4.conf.all.src_valid_mark
+            value: "1"

@@ -1,0 +1,26 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wg-easy
+  namespace: wireguard
+  annotations:
+    cert-manager.io/cluster-issuer: home-lab-ca
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: vpn.home.lab
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wg-easy-ui
+                port:
+                  number: 51821
+  tls:
+    - secretName: wg-easy-tls
+      hosts:
+        - vpn.home.lab

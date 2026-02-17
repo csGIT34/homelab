@@ -88,6 +88,7 @@ spec:
               ap-ac-pro         IN  A    10.0.10.5
               ap-u7-pro         IN  A    10.0.10.6
               llm               IN  A    10.0.20.80
+              vpn               IN  A    10.0.20.80
   destination:
     server: https://kubernetes.default.svc
     namespace: coredns
