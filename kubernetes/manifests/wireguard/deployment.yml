@@ -18,6 +18,8 @@ spec:
       labels:
         app: wg-easy
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       initContainers:
         - name: sysctl
           image: busybox:1.37
